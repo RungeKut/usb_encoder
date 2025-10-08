@@ -57,7 +57,62 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+typedef struct
+{
+	uint8_t MODIFIER;
+	uint8_t RESERVED;
+	uint8_t KEYCODE1;
+	uint8_t KEYCODE2;
+	uint8_t KEYCODE3;
+	uint8_t KEYCODE4;
+	uint8_t KEYCODE5;
+	uint8_t KEYCODE6;
+} keyboardHID;
 
+keyboardHID keyboardhid = {0,0,0,0,0,0,0,0};
+
+void PressKeyUP(void)
+{
+	keyboardhid.KEYCODE1 = 0x52;  // press 'Enter'
+	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&keyboardhid, sizeof (keyboardhid));
+	HAL_Delay (20);
+}
+void PressKeyDown(void)
+{
+	keyboardhid.KEYCODE1 = 0x51;  // press 'Enter'
+	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&keyboardhid, sizeof (keyboardhid));
+	HAL_Delay (20);
+}
+void PressKeyEnter(void)
+{
+	keyboardhid.KEYCODE1 = 0x28;  // press 'Enter'
+	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&keyboardhid, sizeof (keyboardhid));
+	HAL_Delay (20);
+}
+void ReleaseKey(void)
+{
+	keyboardhid.MODIFIER = 0;
+	keyboardhid.RESERVED = 0;
+	keyboardhid.KEYCODE1 = 0;
+	keyboardhid.KEYCODE2 = 0;
+	keyboardhid.KEYCODE3 = 0;
+	keyboardhid.KEYCODE4 = 0;
+	keyboardhid.KEYCODE5 = 0;
+	keyboardhid.KEYCODE6 = 0;
+	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&keyboardhid, sizeof (keyboardhid));
+	HAL_Delay (20);
+}
+void PressDubleKey(void)
+{
+	keyboardhid.MODIFIER = 0x02;  // left Shift
+	keyboardhid.KEYCODE1 = 0x04;  // press 'a'
+	keyboardhid.KEYCODE2 = 0x05;  // press 'b'
+	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&keyboardhid, sizeof (keyboardhid));
+	HAL_Delay (20);
+}
+int32_t prevCounter = 0;
+int32_t currCounter = 0;
+int32_t delta = 0;
 /* USER CODE END 0 */
 
 /**
@@ -89,26 +144,65 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_RTC_Init();
+  //MX_RTC_Init();
   MX_TIM1_Init();
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
-
+//	HAL_NVIC_SetPriority(TIM1_UP_IRQn, 0, 0);
+	HAL_NVIC_EnableIRQ(TIM1_UP_IRQn);
+//	HAL_TIM_Base_Start_IT(&htim1);
+	HAL_TIM_Encoder_Start(&htim1, TIM_CHANNEL_ALL);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-		//HAL_GPIO_TogglePin(LED_PIN_GPIO_Port, LED_PIN_Pin);
-		HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_RESET);
-		HAL_Delay (100);
-		HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_SET);
-		HAL_Delay (900);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-  }
+		currCounter = __HAL_TIM_GET_COUNTER(&htim1);
+    currCounter = 32767 - ((currCounter-1) & 0xFFFF) / 2;
+    if(currCounter > 32768/2) {
+        // Преобразуем значения счетчика из:
+        //  ... 32766, 32767, 0, 1, 2 ...
+        // в значения:
+        //  ... -2, -1, 0, 1, 2 ...
+        currCounter = currCounter - 32768;
+    }
+    if(currCounter != prevCounter) {
+      delta = currCounter-prevCounter;
+      prevCounter = currCounter;
+      // защита от дребезга контактов и переполнения счетчика
+      // (переполнение будет случаться очень редко)
+      if((delta > -10) && (delta < 10)) {
+          // здесь обрабатываем поворот энкодера на delta щелчков
+			HAL_GPIO_TogglePin(LED_PIN_GPIO_Port, LED_PIN_Pin);
+          // delta положительная или отрицательная в зависимости
+          // от направления вращения
+			if (delta < 0)
+			{
+				PressKeyUP();
+			}
+			if (delta > 0)
+			{
+				PressKeyDown();
+			}
+      }
+    }
+		if (HAL_GPIO_ReadPin(ENCODER_KEY_GPIO_Port, ENCODER_KEY_Pin) == GPIO_PIN_RESET)
+    {
+      // Кнопка нажата — включить LED
+      HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_RESET);
+			PressKeyEnter();
+    }
+    else
+    {
+      // Кнопка отпущена — выключить LED
+      HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_SET);
+			ReleaseKey();
+    }
+	}
   /* USER CODE END 3 */
 }
 
@@ -161,72 +255,7 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-typedef struct
-{
-	uint8_t MODIFIER;
-	uint8_t RESERVED;
-	uint8_t KEYCODE1;
-	uint8_t KEYCODE2;
-	uint8_t KEYCODE3;
-	uint8_t KEYCODE4;
-	uint8_t KEYCODE5;
-	uint8_t KEYCODE6;
-} keyboardHID;
 
-keyboardHID keyboardhid = {0,0,0,0,0,0,0,0};
-
-void PressKeyUP(void)
-{
-	keyboardhid.KEYCODE1 = 0x52;  // press 'Enter'
-	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&keyboardhid, sizeof (keyboardhid));
-	HAL_Delay (5);
-	
-	keyboardhid.KEYCODE1 = 0x00;  // release key
-	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&keyboardhid, sizeof (keyboardhid));
-	HAL_Delay (5);
-}
-void PressKeyDown(void)
-{
-	keyboardhid.KEYCODE1 = 0x51;  // press 'Enter'
-	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&keyboardhid, sizeof (keyboardhid));
-	HAL_Delay (5);
-	
-	keyboardhid.KEYCODE1 = 0x00;  // release key
-	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&keyboardhid, sizeof (keyboardhid));
-	HAL_Delay (5);
-}
-void PressKeyEnter(void)
-{
-	keyboardhid.KEYCODE1 = 0x28;  // press 'Enter'
-	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&keyboardhid, sizeof (keyboardhid));
-	HAL_Delay (5);
-	
-	keyboardhid.KEYCODE1 = 0x00;  // release key
-	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&keyboardhid, sizeof (keyboardhid));
-	HAL_Delay (5);
-}
-void PressDubleKey(void)
-{
-	keyboardhid.MODIFIER = 0x02;  // left Shift
-	keyboardhid.KEYCODE1 = 0x04;  // press 'a'
-	keyboardhid.KEYCODE2 = 0x05;  // press 'b'
-	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&keyboardhid, sizeof (keyboardhid));
-	HAL_Delay (5);
-	
-	keyboardhid.MODIFIER = 0x00;  // shift release
-	keyboardhid.KEYCODE1 = 0x00;  // release key
-	keyboardhid.KEYCODE2 = 0x00;  // release key
-	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&keyboardhid, sizeof (keyboardhid));
-	HAL_Delay (5);
-}
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-  if (htim->Instance == TIM1)
-  {
-    //HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-		PressKeyUP();
-  }
-}
 /* USER CODE END 4 */
 
 /**
