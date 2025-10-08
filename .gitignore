@@ -50,3 +50,5 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+STM32_Stick.uvguix.*
+STM32_Stick/
