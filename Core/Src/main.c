@@ -25,7 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "usbd_hid.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -100,6 +100,11 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+		//HAL_GPIO_TogglePin(LED_PIN_GPIO_Port, LED_PIN_Pin);
+		HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_RESET);
+		HAL_Delay (100);
+		HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_SET);
+		HAL_Delay (900);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -156,7 +161,72 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+typedef struct
+{
+	uint8_t MODIFIER;
+	uint8_t RESERVED;
+	uint8_t KEYCODE1;
+	uint8_t KEYCODE2;
+	uint8_t KEYCODE3;
+	uint8_t KEYCODE4;
+	uint8_t KEYCODE5;
+	uint8_t KEYCODE6;
+} keyboardHID;
 
+keyboardHID keyboardhid = {0,0,0,0,0,0,0,0};
+
+void PressKeyUP(void)
+{
+	keyboardhid.KEYCODE1 = 0x52;  // press 'Enter'
+	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&keyboardhid, sizeof (keyboardhid));
+	HAL_Delay (5);
+	
+	keyboardhid.KEYCODE1 = 0x00;  // release key
+	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&keyboardhid, sizeof (keyboardhid));
+	HAL_Delay (5);
+}
+void PressKeyDown(void)
+{
+	keyboardhid.KEYCODE1 = 0x51;  // press 'Enter'
+	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&keyboardhid, sizeof (keyboardhid));
+	HAL_Delay (5);
+	
+	keyboardhid.KEYCODE1 = 0x00;  // release key
+	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&keyboardhid, sizeof (keyboardhid));
+	HAL_Delay (5);
+}
+void PressKeyEnter(void)
+{
+	keyboardhid.KEYCODE1 = 0x28;  // press 'Enter'
+	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&keyboardhid, sizeof (keyboardhid));
+	HAL_Delay (5);
+	
+	keyboardhid.KEYCODE1 = 0x00;  // release key
+	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&keyboardhid, sizeof (keyboardhid));
+	HAL_Delay (5);
+}
+void PressDubleKey(void)
+{
+	keyboardhid.MODIFIER = 0x02;  // left Shift
+	keyboardhid.KEYCODE1 = 0x04;  // press 'a'
+	keyboardhid.KEYCODE2 = 0x05;  // press 'b'
+	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&keyboardhid, sizeof (keyboardhid));
+	HAL_Delay (5);
+	
+	keyboardhid.MODIFIER = 0x00;  // shift release
+	keyboardhid.KEYCODE1 = 0x00;  // release key
+	keyboardhid.KEYCODE2 = 0x00;  // release key
+	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&keyboardhid, sizeof (keyboardhid));
+	HAL_Delay (5);
+}
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  if (htim->Instance == TIM1)
+  {
+    //HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+		PressKeyUP();
+  }
+}
 /* USER CODE END 4 */
 
 /**
