@@ -58,7 +58,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+//https://www.usb.org/sites/default/files/hut1_3_0.pdf
 //Переключение режима энкодера
 typedef enum {
   MODE_ENCODER,
@@ -91,12 +91,54 @@ typedef struct {
 } consumer_cmd_t;
 
 consumer_cmd_t consumer_list[] = {
-    {"Power",     0x0030},
-    {"Sleep",     0x0032},
-    {"Wake",      0x0034},
-    {"PowerDown", 0x0031},
-    {"Reset",     0x0033},
-    {"ScreenOff", 0x019F}, // Display Brightness Down до минимума = выкл
+    // === Системные команды ===
+    {"Power",        0x0030},
+    {"Sleep",        0x0032},
+    {"Wake Up",      0x0034},
+    {"Power Down",   0x0031},
+    {"Reset",        0x0033},
+
+    // === Управление экраном ===
+    {"Screen Off",   0x019F}, // Brightness Down до 0
+    {"Screen On",    0x01A0}, // Brightness Up
+    {"Screen Dim",   0x01B2}, // Dimmer
+
+    // === Аудио: громкость ===
+    {"Vol Up",       0x00E9},
+    {"Vol Down",     0x00EA},
+    {"Vol Mute",     0x00E2},
+
+    // === Медиа: воспроизведение ===
+    {"Play/Pause",   0x00CD},
+    {"Stop",         0x00B7},
+    {"Next Track",   0x00B5},
+    {"Prev Track",   0x00B6},
+    {"Fast Forward", 0x00B3},
+    {"Rewind",       0x00B4},
+
+    // === Запуск приложений ===
+    {"Mail",         0x018A},
+    {"Browser",      0x0182},
+    {"Calc",         0x0192},
+    {"Music",        0x0183},
+    {"Search",       0x0221},
+
+    // === Управление питанием ноутбука ===
+    {"Battery",      0x01A5}, // Show battery status
+    {"Hibernate",    0x01AC},
+
+    // === Дополнительно ===
+    {"Eject",        0x00B8},
+    {"Record",       0x00B2},
+    {"Random Play",  0x00C1},
+    {"Repeat",       0x00C2},
+    {"Menu",         0x0180}, // Show menu
+    {"Help",         0x0181},
+    {"WWW Home",     0x0194},
+    {"Back",         0x0195}, // Browser back
+    {"Forward",      0x0196}, // Browser forward
+    {"Refresh",      0x0197},
+    {"Bookmarks",    0x0198},
 };
 
 #define CONSUMER_COUNT (sizeof(consumer_list)/sizeof(consumer_list[0]))
@@ -125,7 +167,7 @@ uint8_t key_list[] = {
 };
 
 #define KEY_COUNT (sizeof(key_list)/sizeof(key_list[0]))
-uint8_t key_index = 0;
+uint8_t logical_index = 0;
 bool apply_input_key = true;
 
 // Шаг перемещения мыши
@@ -230,14 +272,14 @@ void SendConsumerByIndex(uint8_t index) {
 /*                     --- Функция обработки энкодера ---                     */
 /* ========================================================================== */
 void HandleEncoder(void) {
-	currCounter = __HAL_TIM_GET_COUNTER(&htim1);
+  currCounter = __HAL_TIM_GET_COUNTER(&htim1);
   currCounter = 32767 - ((currCounter-1) & 0xFFFF) / 2;
   if(currCounter > 32768/2) {
-      // Преобразуем значения счетчика из:
-      //  ... 32766, 32767, 0, 1, 2 ...
-      // в значения:
-      //  ... -2, -1, 0, 1, 2 ...
-      currCounter = currCounter - 32768;
+    // Преобразуем значения счетчика из:
+    //  ... 32766, 32767, 0, 1, 2 ...
+    // в значения:
+    //  ... -2, -1, 0, 1, 2 ...
+    currCounter = currCounter - 32768;
   }
   if(currCounter != prevCounter) {
     delta = currCounter-prevCounter;
@@ -264,12 +306,20 @@ void HandleEncoder(void) {
                 consumer_index = (consumer_index - delta + CONSUMER_COUNT) % CONSUMER_COUNT;
 				
 			} else if (current_mode == MODE_KEYBOARD) {
-                key_index = (key_index + delta + KEY_COUNT) % KEY_COUNT;
-				if (!apply_input_key) {
-					PressKeyOnce(0x2A, 0); // press 'Backspace'
-				}
-				apply_input_key = false;
-				PressKeyOnce(key_list[key_index], 0);
+        logical_index = (logical_index - delta + 2 * KEY_COUNT) % (2 * KEY_COUNT);
+				// Определяем физическую клавишу и нужно ли Shift
+        uint8_t physical_index = logical_index / 2; // 0,0,1,1,2,2,...
+        bool use_shift = (logical_index % 2 == 0);  // чётный → с Shift, нечётный → без Shift
+				
+				// Стираем предыдущую букву (если не первое нажатие)
+        if (!apply_input_key) {
+          PressKeyOnce(0x2A, 0); // Backspace
+        }
+				
+				uint8_t modifier = use_shift ? 0x02 : 0x00;
+        PressKeyOnce(key_list[physical_index], modifier);
+
+        apply_input_key = false;
 				
       } else if (current_mode == MODE_MOUSE) {
 				uint8_t RoadLength = delta * MOUSE_STEP;
@@ -295,6 +345,14 @@ void OneShortPress(void) {
     MouseClick(0x01); // Left click
   } else if (current_mode == MODE_CONSUMER) {
     SendConsumerCommand(consumer_list[consumer_index].usage);
+		for (int i = 0; i <= consumer_index; i++) {
+      // Включить LED
+      HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_RESET);
+      HAL_Delay(20);
+      // Отключить LED
+      HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_SET);
+      HAL_Delay(80);
+    }
   }
 }
 
@@ -326,9 +384,10 @@ void OneDoubleClick(void) {
     // Переключить раскладку (отправить Alt+Shift)
 		PressKeyOnce(0x1F, 0x04); // Left Shift, Left Alt
   } else if (current_mode == MODE_CONSUMER) {
-    SendConsumerCommand(consumer_list[0].usage); // Power
+    SendConsumerCommand(consumer_list[28].usage); // Menu
 	} else if (current_mode == MODE_MOUSE) {
     MouseClick(0x02); // Right click
+		axis_mouse_move = axis_mouse_move ? false : true;
   }
 }
 
