@@ -128,7 +128,7 @@ __ALIGN_BEGIN static uint8_t USBD_HID_CfgFSDesc[USB_HID_CONFIG_DESC_SIZ] __ALIGN
 {
   // Configuration Descriptor (9 byte)
   0x09, 0x02, // bLength, bDescriptorType
-  LOBYTE(9 + 9+9+7 + 9+9+7 + 9+9+7), HIBYTE(9+9+9+7 + 9+9+7 + 9+9+7), // wTotalLength = 84
+  LOBYTE(USB_HID_CONFIG_DESC_SIZ), HIBYTE(USB_HID_CONFIG_DESC_SIZ), // wTotalLength = 84
   0x03,       // bNumInterfaces
   0x01,       // bConfigurationValue
   0x00,       // iConfiguration
@@ -158,7 +158,7 @@ __ALIGN_BEGIN static uint8_t USBD_HID_CfgHSDesc[USB_HID_CONFIG_DESC_SIZ]  __ALIG
 {
   // Configuration Descriptor (9 byte)
   0x09, 0x02, // bLength, bDescriptorType
-  LOBYTE(9 + 9+9+7 + 9+9+7 + 9+9+7), HIBYTE(9+9+9+7 + 9+9+7 + 9+9+7), // wTotalLength = 84
+  LOBYTE(USB_HID_CONFIG_DESC_SIZ), HIBYTE(USB_HID_CONFIG_DESC_SIZ), // wTotalLength = 84
   0x03,       // bNumInterfaces
   0x01,       // bConfigurationValue
   0x00,       // iConfiguration
@@ -187,7 +187,7 @@ __ALIGN_BEGIN static uint8_t USBD_HID_OtherSpeedCfgDesc[USB_HID_CONFIG_DESC_SIZ]
 {
   // Configuration Descriptor (9 byte)
   0x09, 0x02, // bLength, bDescriptorType
-  LOBYTE(9 + 9+9+7 + 9+9+7 + 9+9+7), HIBYTE(9+9+9+7 + 9+9+7 + 9+9+7), // wTotalLength = 84
+  LOBYTE(USB_HID_CONFIG_DESC_SIZ), HIBYTE(USB_HID_CONFIG_DESC_SIZ), // wTotalLength = 84
   0x03,       // bNumInterfaces
   0x01,       // bConfigurationValue
   0x00,       // iConfiguration

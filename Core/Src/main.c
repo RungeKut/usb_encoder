@@ -256,10 +256,11 @@ void SendConsumerCommand(uint16_t usage) {
         (uint8_t)((usage >> 8) & 0xFF)  // старший байт
     };
     USBD_HID_SendReport_EP(&hUsbDeviceFS, report, 2, HID_CONSUMER_EP);
-    HAL_Delay(10);
+    HAL_Delay(100);
     // Обязательно отпустить!
-    uint8_t release[2] = {0, 0};
+    uint8_t release[2] = {0};
     USBD_HID_SendReport_EP(&hUsbDeviceFS, release, 2, HID_CONSUMER_EP);
+		HAL_Delay(100);
 }
 
 void SendConsumerByIndex(uint8_t index) {
