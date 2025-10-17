@@ -28,23 +28,15 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include  "usbd_ioreq.h"
 
-/** @addtogroup STM32_USB_DEVICE_LIBRARY
-  * @{
-  */
+#define HID_KEYBOARD_EP        0x81U
+#define HID_MOUSE_EP           0x82U
+#define HID_CONSUMER_EP        0x83U
 
-/** @defgroup USBD_HID
-  * @brief This file is the Header file for usbd_hid.c
-  * @{
-  */
+#define HID_KEYBOARD_EP_SIZE   0x08U
+#define HID_MOUSE_EP_SIZE      0x08U
+#define HID_CONSUMER_EP_SIZE   0x02U
 
-
-/** @defgroup USBD_HID_Exported_Defines
-  * @{
-  */
-#define HID_EPIN_ADDR                 0x81U
-#define HID_EPIN_SIZE                 0x04U
-
-#define USB_HID_CONFIG_DESC_SIZ       34U
+#define USB_HID_CONFIG_DESC_SIZ       84U //34U
 #define USB_HID_DESC_SIZ              9U
 #define HID_MOUSE_REPORT_DESC_SIZE    63U //74U
 
@@ -123,6 +115,11 @@ uint8_t USBD_HID_SendReport(USBD_HandleTypeDef *pdev,
                             uint16_t len);
 
 uint32_t USBD_HID_GetPollingInterval(USBD_HandleTypeDef *pdev);
+
+uint8_t USBD_HID_SendReport_EP(USBD_HandleTypeDef *pdev,
+                               uint8_t *report,
+                               uint16_t len,
+                               uint8_t ep_addr);
 
 /**
   * @}

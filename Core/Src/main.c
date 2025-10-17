@@ -26,6 +26,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "usbd_hid.h"
+#include "stdbool.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -57,6 +58,88 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+//Переключение режима энкодера
+typedef enum {
+  MODE_ENCODER,
+	MODE_CONSUMER,
+  MODE_KEYBOARD,
+  MODE_MOUSE,
+	MODE_COUNT        // ← специальный "счётчик" количества элементов — всегда последним!
+} device_mode_t;
+
+device_mode_t current_mode = MODE_ENCODER;
+
+// Состояние кнопки энкодера
+bool button_pressed = false;
+uint32_t button_press_time = 0;
+
+// Счётчики энкодера
+int32_t prevCounter = 0;
+int32_t currCounter = 0;
+int32_t delta = 0;
+
+// Для двойного нажатия
+#define DOUBLE_CLICK_TIMEOUT  200  // мс
+static uint32_t last_click_time = 0;
+static bool waiting_for_double = false;
+
+// Consumer команды
+typedef struct {
+    const char* name;
+    uint16_t usage;
+} consumer_cmd_t;
+
+consumer_cmd_t consumer_list[] = {
+    {"Power",     0x0030},
+    {"Sleep",     0x0032},
+    {"Wake",      0x0034},
+    {"PowerDown", 0x0031},
+    {"Reset",     0x0033},
+    {"ScreenOff", 0x019F}, // Display Brightness Down до минимума = выкл
+};
+
+#define CONSUMER_COUNT (sizeof(consumer_list)/sizeof(consumer_list[0]))
+uint8_t consumer_index = 0;
+
+// Список кнопок клавиатуры
+// Все печатающие клавиши, которые имеют альтернативу с Shift (US QWERTY)
+uint8_t key_list[] = {
+    // Буквы (a-z)
+    0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B,
+    0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13,
+    0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B,
+    0x1C, 0x1D,
+
+    // Цифры и символы верхнего ряда
+    0x1E, 0x1F, 0x20, 0x21, 0x22, 0x23, 0x24, 0x25,
+    0x26, 0x27,
+
+    // Ряд под цифрами
+    0x2D, 0x2E, // - =
+    0x2F, 0x30, // [ ]
+    0x31,       // \
+    0x33, 0x34, // ; '
+    0x35,       // `
+    0x36, 0x37, 0x38 // , . /
+};
+
+#define KEY_COUNT (sizeof(key_list)/sizeof(key_list[0]))
+uint8_t key_index = 0;
+bool apply_input_key = true;
+
+// Шаг перемещения мыши
+#define MOUSE_STEP 5
+
+//Mouse HID Report
+typedef struct {
+	uint8_t buttons;   // bit 0 = left, 1 = right, 2 = middle
+	int8_t x;          // movement X
+	int8_t y;          // movement Y
+	int8_t wheel;      // scroll
+} mouseHID;
+
+//Keyboard HID Report
 typedef struct
 {
 	uint8_t MODIFIER;
@@ -69,50 +152,225 @@ typedef struct
 	uint8_t KEYCODE6;
 } keyboardHID;
 
-keyboardHID keyboardhid = {0,0,0,0,0,0,0,0};
+keyboardHID keyboardhid = {0};
 
-void PressKeyUP(void)
-{
-	keyboardhid.KEYCODE1 = 0x52;  // press 'Enter'
-	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&keyboardhid, sizeof (keyboardhid));
-	HAL_Delay (20);
+/* ========================================================================== */
+/*                 --- Функции отправки для клавиатуры ---                    */
+/* ========================================================================== */
+
+void SendKeyboardReport(keyboardHID *kb) {
+    USBD_HID_SendReport_EP(&hUsbDeviceFS, (uint8_t *)kb, sizeof(keyboardHID), HID_KEYBOARD_EP);
+    HAL_Delay(2); // небольшая задержка для надёжности
 }
-void PressKeyDown(void)
-{
-	keyboardhid.KEYCODE1 = 0x51;  // press 'Enter'
-	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&keyboardhid, sizeof (keyboardhid));
-	HAL_Delay (20);
+
+// Удобная обёртка: нажать и отпустить одну клавишу
+void PressKeyOnce(uint8_t keycode, uint8_t modifier) {
+    keyboardHID report = {0};
+    report.MODIFIER = modifier;
+    report.KEYCODE1 = keycode;
+    SendKeyboardReport(&report);
+    HAL_Delay(10);
+    // Отпустить
+    report.MODIFIER = 0;
+    report.KEYCODE1 = 0;
+    SendKeyboardReport(&report);
 }
-void PressKeyEnter(void)
-{
-	keyboardhid.KEYCODE1 = 0x28;  // press 'Enter'
-	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&keyboardhid, sizeof (keyboardhid));
-	HAL_Delay (20);
+
+/* ========================================================================== */
+/*                    --- Функции отправки для мыши ---                       */
+/* ========================================================================== */
+
+void SendMouseReport(mouseHID *mouse) {
+    USBD_HID_SendReport_EP(&hUsbDeviceFS, (uint8_t *)mouse, sizeof(mouseHID), HID_MOUSE_EP);
+    HAL_Delay(2);
 }
-void ReleaseKey(void)
-{
-	keyboardhid.MODIFIER = 0;
-	keyboardhid.RESERVED = 0;
-	keyboardhid.KEYCODE1 = 0;
-	keyboardhid.KEYCODE2 = 0;
-	keyboardhid.KEYCODE3 = 0;
-	keyboardhid.KEYCODE4 = 0;
-	keyboardhid.KEYCODE5 = 0;
-	keyboardhid.KEYCODE6 = 0;
-	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&keyboardhid, sizeof (keyboardhid));
-	HAL_Delay (20);
+
+// Ось перемещения мыши: false - Ось X, true - Ось Y
+bool axis_mouse_move = false;
+
+void MouseMove(int8_t x, int8_t y) {
+    mouseHID report = {0};
+    report.x = x;
+    report.y = y;
+    SendMouseReport(&report);
 }
-void PressDubleKey(void)
-{
-	keyboardhid.MODIFIER = 0x02;  // left Shift
-	keyboardhid.KEYCODE1 = 0x04;  // press 'a'
-	keyboardhid.KEYCODE2 = 0x05;  // press 'b'
-	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&keyboardhid, sizeof (keyboardhid));
-	HAL_Delay (20);
+
+void MouseClick(uint8_t button) {
+    mouseHID report = {0};
+    report.buttons = button;
+    SendMouseReport(&report);
+    HAL_Delay(20);
+    report.buttons = 0;
+    SendMouseReport(&report);
 }
-int32_t prevCounter = 0;
-int32_t currCounter = 0;
-int32_t delta = 0;
+
+/* ========================================================================== */
+/*             --- Функции отправки для медиа устройства ---                  */
+/* ========================================================================== */
+
+void SendConsumerCommand(uint16_t usage) {
+    uint8_t report[2] = {
+        (uint8_t)(usage & 0xFF),        // младший байт
+        (uint8_t)((usage >> 8) & 0xFF)  // старший байт
+    };
+    USBD_HID_SendReport_EP(&hUsbDeviceFS, report, 2, HID_CONSUMER_EP);
+    HAL_Delay(10);
+    // Обязательно отпустить!
+    uint8_t release[2] = {0, 0};
+    USBD_HID_SendReport_EP(&hUsbDeviceFS, release, 2, HID_CONSUMER_EP);
+}
+
+void SendConsumerByIndex(uint8_t index) {
+    if (index < sizeof(consumer_list) / sizeof(consumer_list[0])) {
+        SendConsumerCommand(consumer_list[index].usage);
+    }
+}
+
+/* ========================================================================== */
+/*                     --- Функция обработки энкодера ---                     */
+/* ========================================================================== */
+void HandleEncoder(void) {
+	currCounter = __HAL_TIM_GET_COUNTER(&htim1);
+  currCounter = 32767 - ((currCounter-1) & 0xFFFF) / 2;
+  if(currCounter > 32768/2) {
+      // Преобразуем значения счетчика из:
+      //  ... 32766, 32767, 0, 1, 2 ...
+      // в значения:
+      //  ... -2, -1, 0, 1, 2 ...
+      currCounter = currCounter - 32768;
+  }
+  if(currCounter != prevCounter) {
+    delta = currCounter-prevCounter;
+    prevCounter = currCounter;
+    // защита от дребезга контактов и переполнения счетчика
+    // (переполнение будет случаться очень редко)
+		HAL_Delay(10);
+    if((delta > -10) && (delta < 10)) {
+      // здесь обрабатываем поворот энкодера на delta щелчков
+			HAL_GPIO_TogglePin(LED_PIN_GPIO_Port, LED_PIN_Pin);
+			
+			if (current_mode == MODE_ENCODER) {
+				// delta положительная или отрицательная в зависимости от направления вращения
+				if (delta < 0)
+				{
+					PressKeyOnce(0x52, 0x00);  // press 'UP'
+				}
+				if (delta > 0)
+				{
+					PressKeyOnce(0x51, 0x00);  // press 'DOWN'
+				}
+				
+			} else if (current_mode == MODE_CONSUMER) {
+                consumer_index = (consumer_index - delta + CONSUMER_COUNT) % CONSUMER_COUNT;
+				
+			} else if (current_mode == MODE_KEYBOARD) {
+                key_index = (key_index + delta + KEY_COUNT) % KEY_COUNT;
+				if (!apply_input_key) {
+					PressKeyOnce(0x2A, 0); // press 'Backspace'
+				}
+				apply_input_key = false;
+				PressKeyOnce(key_list[key_index], 0);
+				
+      } else if (current_mode == MODE_MOUSE) {
+				uint8_t RoadLength = delta * MOUSE_STEP;
+				if (axis_mouse_move)
+					MouseMove(RoadLength, 0);
+				else
+					MouseMove(0, RoadLength);
+      }
+    }
+  }
+}
+
+/* ========================================================================== */
+/*                 --- Функция обработки кнопки энкодера ---                  */
+/* ========================================================================== */
+//Одно короткое нажатие
+void OneShortPress(void) {
+	if (current_mode == MODE_ENCODER) {
+    PressKeyOnce(0x28, 0x00);  // press 'Enter'
+  } else if (current_mode == MODE_KEYBOARD) {
+		apply_input_key = true;
+  } else if (current_mode == MODE_MOUSE) {
+    MouseClick(0x01); // Left click
+  } else if (current_mode == MODE_CONSUMER) {
+    SendConsumerCommand(consumer_list[consumer_index].usage);
+  }
+}
+
+//Одно долгое нажатие
+void OneLongPress(void) {
+  // Долгое нажатие → смена режима
+  current_mode = (current_mode + 1) % MODE_COUNT;
+  HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_SET);
+  HAL_Delay(100);
+  // Мигни количеством режимов:
+  // Отключить LED
+  HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_SET);
+  HAL_Delay(500);
+  for (int i = 0; i <= current_mode; i++) {
+    // Включить LED
+    HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_RESET);
+    HAL_Delay(200);
+    // Отключить LED
+    HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_SET);
+    HAL_Delay(400);
+  }
+}
+
+//Одно двойное нажатие
+void OneDoubleClick(void) {
+	if (current_mode == MODE_ENCODER) {
+    PressKeyOnce(0x2A, 0); // press 'Backspace'
+	} else if (current_mode == MODE_KEYBOARD) {
+    // Переключить раскладку (отправить Alt+Shift)
+		PressKeyOnce(0x1F, 0x04); // Left Shift, Left Alt
+  } else if (current_mode == MODE_CONSUMER) {
+    SendConsumerCommand(consumer_list[0].usage); // Power
+	} else if (current_mode == MODE_MOUSE) {
+    MouseClick(0x02); // Right click
+  }
+}
+
+//Обработчик нажатия
+void HandleButton(void) {
+  static bool button_pressed = false;
+  static uint32_t press_start_time = 0;
+  if (HAL_GPIO_ReadPin(ENCODER_KEY_GPIO_Port, ENCODER_KEY_Pin) == GPIO_PIN_RESET) {
+    if (!button_pressed) {
+      button_pressed = true;
+      press_start_time = HAL_GetTick();
+    }
+  } else {
+    if (button_pressed) {
+      uint32_t press_duration = HAL_GetTick() - press_start_time;
+      button_pressed = false;
+					
+      if (press_duration > 1000) { // Долгое нажатие
+        OneLongPress();
+				
+      } else if (press_duration < 300) { // Короткое нажатие
+        //Проверяем, не двойное ли
+        if (waiting_for_double) {
+          // Это второе нажатие → двойной клик!
+          waiting_for_double = false;
+          OneDoubleClick();
+        } else {
+          // Первое нажатие — ждём второе
+          waiting_for_double = true;
+          last_click_time = HAL_GetTick();
+        }
+      }
+    }
+  }
+
+  // Проверка таймаута для двойного нажатия
+  if (waiting_for_double && (HAL_GetTick() - last_click_time > DOUBLE_CLICK_TIMEOUT)) {
+    waiting_for_double = false;
+    // Обрабатываем как одиночное нажатие
+    OneShortPress();
+  }
+}
 /* USER CODE END 0 */
 
 /**
@@ -158,50 +416,12 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+		HandleEncoder();
+    HandleButton();
+    HAL_Delay(5); // небольшая задержка для стабильности
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-		currCounter = __HAL_TIM_GET_COUNTER(&htim1);
-    currCounter = 32767 - ((currCounter-1) & 0xFFFF) / 2;
-    if(currCounter > 32768/2) {
-        // Преобразуем значения счетчика из:
-        //  ... 32766, 32767, 0, 1, 2 ...
-        // в значения:
-        //  ... -2, -1, 0, 1, 2 ...
-        currCounter = currCounter - 32768;
-    }
-    if(currCounter != prevCounter) {
-      delta = currCounter-prevCounter;
-      prevCounter = currCounter;
-      // защита от дребезга контактов и переполнения счетчика
-      // (переполнение будет случаться очень редко)
-      if((delta > -10) && (delta < 10)) {
-          // здесь обрабатываем поворот энкодера на delta щелчков
-			HAL_GPIO_TogglePin(LED_PIN_GPIO_Port, LED_PIN_Pin);
-          // delta положительная или отрицательная в зависимости
-          // от направления вращения
-			if (delta < 0)
-			{
-				PressKeyUP();
-			}
-			if (delta > 0)
-			{
-				PressKeyDown();
-			}
-      }
-    }
-		if (HAL_GPIO_ReadPin(ENCODER_KEY_GPIO_Port, ENCODER_KEY_Pin) == GPIO_PIN_RESET)
-    {
-      // Кнопка нажата — включить LED
-      HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_RESET);
-			PressKeyEnter();
-    }
-    else
-    {
-      // Кнопка отпущена — выключить LED
-      HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_SET);
-			ReleaseKey();
-    }
 	}
   /* USER CODE END 3 */
 }
