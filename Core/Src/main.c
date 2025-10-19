@@ -1,3 +1,5 @@
+
+
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
@@ -165,6 +167,160 @@ uint8_t key_list[] = {
     0x35,       // `
     0x36, 0x37, 0x38 // , . /
 };
+
+enum { 
+  // key codes
+  HIDKEY_A = 4, 
+  HIDKEY_B = 5, 
+  HIDKEY_C = 6, 
+  HIDKEY_D = 7, 
+  HIDKEY_E = 8, 
+  HIDKEY_F = 9, 
+  HIDKEY_G = 10, 
+  HIDKEY_H = 11, 
+  HIDKEY_I = 12, 
+  HIDKEY_J = 13, 
+  HIDKEY_K = 14, 
+  HIDKEY_L = 15, 
+  HIDKEY_M = 16, 
+  HIDKEY_N = 17, 
+  HIDKEY_O = 18, 
+  HIDKEY_P = 19, 
+  HIDKEY_Q = 20, 
+  HIDKEY_R = 21, 
+  HIDKEY_S = 22, 
+  HIDKEY_T = 23, 
+  HIDKEY_U = 24, 
+  HIDKEY_V = 25, 
+  HIDKEY_W = 26, 
+  HIDKEY_X = 27, 
+  HIDKEY_Y = 28, 
+  HIDKEY_Z = 29, 
+  HIDKEY_1 = 30, 
+  HIDKEY_2 = 31, 
+  HIDKEY_3 = 32, 
+  HIDKEY_4 = 33, 
+  HIDKEY_5 = 34, 
+  HIDKEY_6 = 35, 
+  HIDKEY_7 = 36, 
+  HIDKEY_8 = 37, 
+  HIDKEY_9 = 38, 
+  HIDKEY_0 = 39, 
+  HIDKEY_ENTER = 40, 
+  HIDKEY_ESCAPE = 41, 
+  HIDKEY_BACKSPACE = 42, 
+  HIDKEY_TAB = 43, 
+  HIDKEY_SPACEBAR = 44, 
+  HIDKEY_UNDERSCORE = 45, 
+  HIDKEY_PLUS = 46, 
+  HIDKEY_OPEN_BRACKET = 47, 
+  HIDKEY_CLOSE_BRACKET = 48,  // 
+  HIDKEY_BACKSLASH = 49, // backslash and pipe
+  HIDKEY_HASH = 50,    // hash and tilde
+  HIDKEY_COLON = 51,  // semicolon
+  HIDKEY_QUOTE = 52,  // quote and single quote
+  HIDKEY_TILDE = 53,  // grave accent
+  HIDKEY_COMMA = 54,  // , >
+  HIDKEY_DOT = 55,    // . >
+  HIDKEY_SLASH = 56,  // / ?
+  HIDKEY_CAPS_LOCK = 57, 
+  HIDKEY_F1 = 58, 
+  HIDKEY_F2 = 59, 
+  HIDKEY_F3 = 60, 
+  HIDKEY_F4 = 61, 
+  HIDKEY_F5 = 62, 
+  HIDKEY_F6 = 63, 
+  HIDKEY_F7 = 64, 
+  HIDKEY_F8 = 65, 
+  HIDKEY_F9 = 66, 
+  HIDKEY_F10 = 67, 
+  HIDKEY_F11 = 68, 
+  HIDKEY_F12 = 69, 
+  HIDKEY_PRINTSCREEN = 70, 
+  HIDKEY_SCROLL_LOCK = 71, 
+  HIDKEY_PAUSE = 72, 
+  HIDKEY_INSERT = 73, 
+  HIDKEY_HOME = 74, 
+  HIDKEY_PAGEUP = 75, 
+  HIDKEY_DELETE = 76, 
+  HIDKEY_END = 77, 
+  HIDKEY_PAGEDOWN = 78, 
+  HIDKEY_RIGHT = 79, 
+  HIDKEY_LEFT = 80, 
+  HIDKEY_DOWN = 81, 
+  HIDKEY_UP = 82, 
+  HIDKEY_KP_NUM_LOCK = 83, 
+  HIDKEY_KP_DIVIDE = 84, 
+  HIDKEY_KP_AT = 85, 
+  HIDKEY_KP_MULTIPLY = 85, 
+  HIDKEY_KP_MINUS = 86, 
+  HIDKEY_KP_PLUS = 87, 
+  HIDKEY_KP_ENTER = 88, 
+  HIDKEY_KP_1 = 89, 
+  HIDKEY_KP_2 = 90, 
+  HIDKEY_KP_3 = 91, 
+  HIDKEY_KP_4 = 92, 
+  HIDKEY_KP_5 = 93, 
+  HIDKEY_KP_6 = 94, 
+  HIDKEY_KP_7 = 95, 
+  HIDKEY_KP_8 = 96, 
+  HIDKEY_KP_9 = 97, 
+  HIDKEY_KP_0 = 98,
+  HIDKEY_KP_DOT_AND_DELETE = 99,
+  HIDKEY_NON_US_BACKSLASH_AND_SLASH = 100,
+  HIDKEY_APPLICATION = 101,
+  HIDKEY_POWER = 102,
+ //= 103,
+  HIDKEY_F13 = 104, 
+  HIDKEY_F14 = 105, 
+  HIDKEY_F15 = 106, 
+  HIDKEY_F16 = 107, 
+  HIDKEY_F17 = 108, 
+  HIDKEY_F18 = 109, 
+  HIDKEY_F19 = 110, 
+  HIDKEY_F20 = 111, 
+  HIDKEY_F21 = 112, 
+  HIDKEY_F22 = 113, 
+  HIDKEY_F23 = 114, 
+  HIDKEY_F24 = 115, 
+  
+  HIDKEY_EXECUTE = 116,
+  HIDKEY_HELP = 117,
+  HIDKEY_MENU = 118,
+  HIDKEY_SELECT = 119,
+  HIDKEY_STOP = 120,
+  HIDKEY_AGAIN = 121,
+  HIDKEY_UNDO = 122,
+  HIDKEY_CUT = 123,
+  HIDKEY_COPY = 124,
+  HIDKEY_PASTE = 125,
+  HIDKEY_FIND = 126,
+  HIDKEY_MUTE = 127,
+  HIDKEY_VOLUME_UP = 128,
+  HIDKEY_VOLUME_DOWN = 129,
+  
+  
+  // modifier bit sets
+  HIDKEY_MODIFIER_NONE = 0x00, 
+  HIDKEY_MODIFIER_LEFT_CTRL = 0x01, 
+  HIDKEY_MODIFIER_LEFT_SHIFT = 0x02, 
+  HIDKEY_MODIFIER_LEFT_ALT = 0x04, 
+  HIDKEY_MODIFIER_LEFT_UI = 0x08, 
+  HIDKEY_MODIFIER_RIGHT_CTRL = 0x10, 
+  HIDKEY_MODIFIER_RIGHT_SHIFT = 0x20, 
+  HIDKEY_MODIFIER_RIGHT_ALT = 0x40, 
+  HIDKEY_MODIFIER_RIGHT_UI = 0x80,
+
+  // media keys
+  HIDKEY_MEDIA_SCAN_NEXT   = 0x01,
+  HIDKEY_MEDIA_SCAN_PREV   = 0x02,
+  HIDKEY_MEDIA_STOP        = 0x04,
+  HIDKEY_MEDIA_EJECT       = 0x08,
+  HIDKEY_MEDIA_PAUSE       = 0x10,
+  HIDKEY_MEDIA_MUTE        = 0x20,
+  HIDKEY_MEDIA_VOLUME_UP   = 0x40,
+  HIDKEY_MEDIA_VOLUME_DOWN = 0x80,
+} KEYBOARD_KEY_LIST;
 
 #define KEY_COUNT (sizeof(key_list)/sizeof(key_list[0]))
 uint8_t logical_index = 0;
@@ -339,7 +495,7 @@ void HandleEncoder(void) {
 //Одно короткое нажатие
 void OneShortPress(void) {
 	if (current_mode == MODE_ENCODER) {
-    PressKeyOnce(0x28, 0x00);  // press 'Enter'
+    PressKeyOnce(HIDKEY_ENTER, HIDKEY_MODIFIER_NONE);  // press 'Enter'
   } else if (current_mode == MODE_KEYBOARD) {
 		apply_input_key = true;
   } else if (current_mode == MODE_MOUSE) {
@@ -380,12 +536,12 @@ void OneLongPress(void) {
 //Одно двойное нажатие
 void OneDoubleClick(void) {
 	if (current_mode == MODE_ENCODER) {
-    PressKeyOnce(0x2A, 0); // press 'Backspace'
+    PressKeyOnce(HIDKEY_BACKSPACE, HIDKEY_MODIFIER_NONE); // press 'Backspace'
 	} else if (current_mode == MODE_KEYBOARD) {
     // Переключить раскладку (отправить Alt+Shift)
-		PressKeyOnce(0x1F, 0x04); // Left Shift, Left Alt
+		PressKeyOnce(HIDKEY_MODIFIER_LEFT_SHIFT, HIDKEY_MODIFIER_LEFT_ALT); // Left Shift, Left Alt
   } else if (current_mode == MODE_CONSUMER) {
-    SendConsumerCommand(consumer_list[28].usage); // Menu
+    SendConsumerCommand(HIDKEY_POWER); // Menu
 	} else if (current_mode == MODE_MOUSE) {
     MouseClick(0x02); // Right click
 		axis_mouse_move = axis_mouse_move ? false : true;
