@@ -45,95 +45,82 @@ USBD_ClassTypeDef  USBD_HID =
 
 /* Report Descriptors --------------------------------------------------------*/
 
-__ALIGN_BEGIN static uint8_t HID_KEYBOARD_ReportDesc[78] __ALIGN_END =
+__ALIGN_BEGIN static uint8_t HID_KEYBOARD_ReportDesc[] __ALIGN_END =
 {
-  0x05, 0x01,        // Usage Page (Generic Desktop Ctrls)
+  0x05, 0x01,        // Usage Page (Generic Desktop)
   0x09, 0x06,        // Usage (Keyboard)
   0xA1, 0x01,        // Collection (Application)
-  0x85, 0x01,        //   Report ID (1)
-  0x05, 0x07,        //   Usage Page (Kbrd/Keypad)
-  0x75, 0x01,        //   Report Size (1)
-  0x95, 0x08,        //   Report Count (8)
-  0x19, 0xE0,        //   Usage Minimum (0xE0)
-  0x29, 0xE7,        //   Usage Maximum (0xE7)
-  0x15, 0x00,        //   Logical Minimum (0)
-  0x25, 0x01,        //   Logical Maximum (1)
-  0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
-  0x95, 0x06,        //   Report Count (6)
-  0x75, 0x08,        //   Report Size (8)
-  0x15, 0x00,        //   Logical Minimum (0)
-  0x25, 0x7f,        //   Logical Maximum (127)
-  0x05, 0x07,        //   Usage Page (Kbrd/Keypad)
-  0x19, 0x00,        //   Usage Minimum (0x00)
-  0x29, 0x7f,        //   Usage Maximum (0x7f)
-  0x81, 0x00,        //   Input (Data,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
-  0xC0,              // End Collection
-  0x05, 0x0C,        // Usage Page (Consumer)
-  0x09, 0x01,        // Usage (Consumer Control)
-  0xA1, 0x01,        // Collection (Application)
-  0x85, 0x02,        //   Report ID (2)
-  0x05, 0x0C,        //   Usage Page (Consumer)
-  0x15, 0x00,        //   Logical Minimum (0)
-  0x25, 0x01,        //   Logical Maximum (1)
-  0x75, 0x01,        //   Report Size (1)
-  0x95, 0x08,        //   Report Count (8)
-  0x09, 0xB5,        //   Usage (Scan Next Track)
-  0x09, 0xB6,        //   Usage (Scan Previous Track)
-  0x09, 0xB7,        //   Usage (Stop)
-  0x09, 0xB8,        //   Usage (Eject)
-  0x09, 0xCD,        //   Usage (Play/Pause)
-  0x09, 0xE2,        //   Usage (Mute)
-  0x09, 0xE9,        //   Usage (Volume Increment)
-  0x09, 0xEA,        //   Usage (Volume Decrement)
-  0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
-  0xC0,              // End Collection
+  0x05, 0x07,        // Usage Page (Key Codes)
+  0x19, 0xE0,        // Usage Minimum (224) - Modifiers
+  0x29, 0xE7,        // Usage Maximum (231)
+  0x15, 0x00,        // Logical Minimum (0)
+  0x25, 0x01,        // Logical Maximum (1)
+  0x75, 0x01,        // Report Size (1)
+  0x95, 0x08,        // Report Count (8)
+  0x81, 0x02,        // Input (Data, Variable, Absolute)
+  0x95, 0x01,        // Report Count (1)
+  0x75, 0x08,        // Report Size (8)
+  0x81, 0x03,        // Input (Constant)
+  0x95, 0x06,        // Report Count (6)
+  0x75, 0x08,        // Report Size (8)
+  0x15, 0x00,        // Logical Minimum (0)
+  0x25, 0x65,        // Logical Maximum (101)
+  0x05, 0x07,        // Usage Page (Key Codes)
+  0x19, 0x00,        // Usage Minimum (0)
+  0x29, 0x65,        // Usage Maximum (101)
+  0x81, 0x00,        // Input (Data, Array)
+  0xC0               // End Collection
 };
 
-__ALIGN_BEGIN static uint8_t HID_MOUSE_ReportDesc[52] __ALIGN_END =
+__ALIGN_BEGIN static uint8_t HID_MOUSE_ReportDesc[] __ALIGN_END =
 {
   0x05, 0x01,        // USAGE_PAGE (Generic Desktop)
   0x09, 0x02,        // USAGE (Mouse)
-  0xa1, 0x01,        // COLLECTION (Application)
-  0x85, 0x03,        //   Report ID (3)
-  0x09, 0x01,        //   USAGE (Pointer)
-  0xa1, 0x00,        //   COLLECTION (Physical)
-  0x05, 0x09,        //     USAGE_PAGE (Button)
-  0x19, 0x01,        //     USAGE_MINIMUM (Button 1)
-  0x29, 0x03,        //     USAGE_MAXIMUM (Button 3)
-  0x15, 0x00,        //     LOGICAL_MINIMUM (0)
-  0x25, 0x01,        //     LOGICAL_MAXIMUM (1)
-  0x95, 0x03,        //     REPORT_COUNT (3)
-  0x75, 0x01,        //     REPORT_SIZE (1)
-  0x81, 0x02,        //     INPUT (Data,Var,Abs)
-  0x95, 0x01,        //     REPORT_COUNT (1)
-  0x75, 0x05,        //     REPORT_SIZE (5)
-  0x81, 0x03,        //     INPUT (Cnst,Var,Abs)
-  0x05, 0x01,        //     USAGE_PAGE (Generic Desktop)
-  0x09, 0x30,        //     USAGE (X)
-  0x09, 0x31,        //     USAGE (Y)
+  0xA1, 0x01,        // COLLECTION (Application)
+  0x09, 0x01,        //   Report ID (3)
+  0xA1, 0x00,        //   USAGE (Pointer)
+  0x05, 0x09,        //   COLLECTION (Physical)
+  0x19, 0x01,        //     USAGE_PAGE (Button)
+  0x29, 0x03,        //     USAGE_MINIMUM (Button 1)
+  0x15, 0x00,        //     USAGE_MAXIMUM (Button 3)
+  0x25, 0x01,        //     LOGICAL_MINIMUM (0)
+  0x95, 0x03,        //     LOGICAL_MAXIMUM (1)
+  0x75, 0x01,        //     REPORT_COUNT (3)
+  0x81, 0x02,        //     REPORT_SIZE (1)
+  0x95, 0x01,        //     INPUT (Data,Var,Abs)
+  0x75, 0x05,        //     REPORT_COUNT (1)
+  0x81, 0x03,        //     REPORT_SIZE (5)
+  0x05, 0x01,        //     INPUT (Cnst,Var,Abs)
+  0x09, 0x30,        //     USAGE_PAGE (Generic Desktop)
+  0x09, 0x31,        //     USAGE (X)
+  0x09, 0x38,        //     USAGE (Y)
   0x15, 0x81,        //     LOGICAL_MINIMUM (-127)
-  0x25, 0x7f,        //     LOGICAL_MAXIMUM (127)
+  0x25, 0x7F,        //     LOGICAL_MAXIMUM (127)
   0x75, 0x08,        //     REPORT_SIZE (8)
-  0x95, 0x02,        //     REPORT_COUNT (2)
+  0x95, 0x03,        //     REPORT_COUNT (2)
   0x81, 0x06,        //     INPUT (Data,Var,Rel)
-  0xc0,              //   END_COLLECTION
-  0xc0,              // END_COLLECTION
+  0xC0,              //   END_COLLECTION
+  0xC0               // END_COLLECTION
 };
 
 __ALIGN_BEGIN static uint8_t HID_CONSUMER_ReportDesc[] __ALIGN_END =
 {
-  0x05, 0x0C,        // Usage Page (Consumer)
-  0x09, 0x01,        // Usage (Consumer Control)
-  0xA1, 0x01,        // Collection (Application)
-  0x15, 0x00,        // Logical Minimum (0)
-  0x26, 0xFF, 0x03,  // Logical Maximum (1023)
-  0x19, 0x00,        // Usage Minimum (0)
-  0x2A, 0xFF, 0x03,  // Usage Maximum (1023)
-  0x81, 0x00,        // Input (Data, Array, Absolute)
-  0xC0               // End Collection
+  0x05, 0x01, // USAGE_PAGE (стандартный рабочий стол)
+       0x09, 0x80, // ИСПОЛЬЗОВАНИЕ (управление системой)
+       0xa1, 0x01, // КОЛЛЕКЦИЯ (приложение)
+           0x19, 0x82, // USAGE_MINIMUM (Режим ожидания системы)
+           0x29, 0x83, // USAGE_MAXIMUM (пробуждение системы)
+           0x15, 0x00, // LOGICAL_MINIMUM (0) <---------- Добавьте эти три строки
+           0x25, 0x01, // LOGICAL_MAXIMUM (1) <----------
+           0x75, 0x01, // РАЗМЕР СООБЩЕНИЯ (1) <----------
+           0x95, 0x02, // COUNT_REPORTS (2)
+           0x81, 0x06, // ВВОД (Данные, Переменная, Связь)
+           0x95, 0x06, // ОТЧЕТНОЕ КОЛИЧЕСТВО (6)
+           0x81, 0x03, // ВВОД (Const, Var, Abs)
+       0xc0                           // КОНЕЦ СБОРКИ
 };
 
-__ALIGN_BEGIN static uint8_t HID_XBOX_ONE_CONTROLLER_ReportDesc[157] __ALIGN_END =
+__ALIGN_BEGIN static uint8_t HID_XBOX_ONE_CONTROLLER_ReportDesc[] __ALIGN_END =
 {
   0x05, 0x01,        // Usage Page (Generic Desktop)
   0x09, 0x05,        // Usage (Game Pad)
@@ -242,16 +229,17 @@ __ALIGN_BEGIN static uint8_t HID_XBOX_ONE_CONTROLLER_ReportDesc[157] __ALIGN_END
 #define CONSUMER_REPORT_DESC_SIZE  (sizeof(HID_CONSUMER_ReportDesc))
 
 /* Configuration Descriptor --------------------------------------------------*/
+// Дескриптор конфигурации (описывает возможности устройства)
 __ALIGN_BEGIN static uint8_t USBD_HID_CfgDesc[USB_HID_CONFIG_DESC_SIZ] __ALIGN_END =
 {
   // Configuration Descriptor (9 byte)
-  /*  1 byte*/ 0x09,      // bLength: Configuration Descriptor size
-  /*  2 byte*/ USB_DESC_TYPE_CONFIGURATION, // bDescriptorType: Configuration
-  /*3-4 byte*/ LOBYTE(USB_HID_CONFIG_DESC_SIZ), HIBYTE(USB_HID_CONFIG_DESC_SIZ), // wTotalLength
-  /*  5 byte*/ 0x03,      // bNumInterfaces
-  /*  6 byte*/ 0x01,      // bConfigurationValue
-  /*  7 byte*/ 0x00,      // iConfiguration
-  /*  8 byte*/ 0x40,      // bmAttributes
+  /*  1 byte*/ 0x09,      // bLength: Configuration Descriptor size - длина дескриптора конфигурации
+  /*  2 byte*/ USB_DESC_TYPE_CONFIGURATION, // bDescriptorType: Configuration - тип дескриптора - конфигурация
+  /*3-4 byte*/ LOBYTE(USB_HID_CONFIG_DESC_SIZ), HIBYTE(USB_HID_CONFIG_DESC_SIZ), // wTotalLength - общий размер всего дерева под данной конфигурацией в байтах
+  /*  5 byte*/ 0x03,      // bNumInterfaces -  в конфигурации три интерфейса
+  /*  6 byte*/ 0x01,      // bConfigurationValue - индекс текущей конфигурации
+  /*  7 byte*/ 0x00,      // iConfiguration - индекс строки, которая описывает эту конфигурацию
+  /*  8 byte*/ 0x40,      // bmAttributes - признак того, что устройство будет питаться от шины USB
   /*  9 byte*/ 0x32,      // MaxPower (100 mA)
 
   // ============ INTERFACE 0: KEYBOARD ============
@@ -327,7 +315,7 @@ __ALIGN_BEGIN static uint8_t USBD_HID_CfgDesc[USB_HID_CONFIG_DESC_SIZ] __ALIGN_E
 	/*  4 byte*/ 0x00,      // bAlternateSetting: Alternate setting
 	/*  5 byte*/ 0x01,      // bNumEndpoints
 	/*  6 byte*/ 0x03,      // bInterfaceClass: HID
-	/*  7 byte*/ 0x00,      // bInterfaceSubClass : 1=BOOT, 0=no boot
+	/*  7 byte*/ 0x01,      // bInterfaceSubClass : 1=BOOT, 0=no boot
 	/*  8 byte*/ 0x00,      // nInterfaceProtocol : 0=none, 1=keyboard, 2=mouse
 	/*  9 byte*/ 0x00,      // iInterface: Index of string descriptor
 	
@@ -349,21 +337,6 @@ __ALIGN_BEGIN static uint8_t USBD_HID_CfgDesc[USB_HID_CONFIG_DESC_SIZ] __ALIGN_E
 					/*  5 byte*/ HID_CONSUMER_EP_SIZE, // wMaxPacketSize
 					/*  6 byte*/ 0x00,
 					/*  7 byte*/ HID_FS_BINTERVAL, // bInterval: Polling Interval (10 ms)
-};
-
-/* USB HID device Configuration Descriptor -----------------------------------*/
-//Не используется на FS-only
-__ALIGN_BEGIN static uint8_t USBD_HID_Desc[USB_HID_DESC_SIZ]  __ALIGN_END  =
-{
-  0x09,         // bLength: HID Descriptor size
-  HID_DESCRIPTOR_TYPE, // bDescriptorType: HID
-  0x11,         // bcdHID: HID Class Spec release number
-  0x01,
-  0x00,         // bCountryCode: Hardware target country
-  0x01,         // bNumDescriptors: Number of HID class descriptors to follow
-  0x22,         // bDescriptorType
-  HID_KEYBOARD_EP_SIZE + HID_MOUSE_EP_SIZE + HID_CONSUMER_EP_SIZE, // wItemLength: Total length of Report descriptor
-  0x00,
 };
 
 /* USB Standard Device Descriptor --------------------------------------------*/
@@ -605,24 +578,7 @@ uint8_t USBD_HID_SendReport_EP(USBD_HandleTypeDef *pdev, uint8_t *report, uint16
   */
 uint32_t USBD_HID_GetPollingInterval(USBD_HandleTypeDef *pdev)
 {
-  uint32_t polling_interval = 0U;
-
-  /* HIGH-speed endpoints */
-  if (pdev->dev_speed == USBD_SPEED_HIGH)
-  {
-    /* Sets the data transfer polling interval for high speed transfers.
-     Values between 1..16 are allowed. Values correspond to interval
-     of 2 ^ (bInterval-1). This option (8 ms, corresponds to HID_HS_BINTERVAL */
-    polling_interval = (((1U << (HID_HS_BINTERVAL - 1U))) / 8U);
-  }
-  else   /* LOW and FULL-speed endpoints */
-  {
-    /* Sets the data transfer polling interval for low and full
-    speed transfers */
-    polling_interval =  HID_FS_BINTERVAL;
-  }
-
-  return ((uint32_t)(polling_interval));
+  return HID_FS_BINTERVAL; // STM32F1 — только Full Speed
 }
 
 /**

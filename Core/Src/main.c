@@ -412,11 +412,11 @@ void SendConsumerCommand(uint16_t usage) {
         (uint8_t)((usage >> 8) & 0xFF)  // старший байт
     };
     USBD_HID_SendReport_EP(&hUsbDeviceFS, report, 2, HID_CONSUMER_EP);
-    HAL_Delay(100);
+    HAL_Delay(10);
     // Обязательно отпустить!
     uint8_t release[2] = {0};
     USBD_HID_SendReport_EP(&hUsbDeviceFS, release, 2, HID_CONSUMER_EP);
-		HAL_Delay(100);
+		HAL_Delay(10);
 }
 
 void SendConsumerByIndex(uint8_t index) {
@@ -452,11 +452,11 @@ void HandleEncoder(void) {
 				// delta положительная или отрицательная в зависимости от направления вращения
 				if (delta < 0)
 				{
-					PressKeyOnce(0x52, 0x00);  // press 'UP'
+					PressKeyOnce(HIDKEY_UP, HIDKEY_MODIFIER_NONE);  // press 'UP'
 				}
 				if (delta > 0)
 				{
-					PressKeyOnce(0x51, 0x00);  // press 'DOWN'
+					PressKeyOnce(HIDKEY_DOWN, HIDKEY_MODIFIER_NONE);  // press 'DOWN'
 				}
 				
 			} else if (current_mode == MODE_CONSUMER) {
@@ -470,10 +470,10 @@ void HandleEncoder(void) {
 				
 				// Стираем предыдущую букву (если не первое нажатие)
         if (!apply_input_key) {
-          PressKeyOnce(0x2A, 0); // Backspace
+          PressKeyOnce(HIDKEY_BACKSPACE, HIDKEY_MODIFIER_NONE); // Backspace
         }
 				
-				uint8_t modifier = use_shift ? 0x02 : 0x00;
+				uint8_t modifier = use_shift ? HIDKEY_MODIFIER_LEFT_SHIFT : HIDKEY_MODIFIER_NONE;
         PressKeyOnce(key_list[physical_index], modifier);
 
         apply_input_key = false;
@@ -541,7 +541,7 @@ void OneDoubleClick(void) {
     // Переключить раскладку (отправить Alt+Shift)
 		PressKeyOnce(HIDKEY_MODIFIER_LEFT_SHIFT, HIDKEY_MODIFIER_LEFT_ALT); // Left Shift, Left Alt
   } else if (current_mode == MODE_CONSUMER) {
-    SendConsumerCommand(HIDKEY_POWER); // Menu
+    SendConsumerCommand(consumer_list[8].usage); // Menu
 	} else if (current_mode == MODE_MOUSE) {
     MouseClick(0x02); // Right click
 		axis_mouse_move = axis_mouse_move ? false : true;

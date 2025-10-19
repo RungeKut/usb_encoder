@@ -143,27 +143,34 @@ USBD_DescriptorsTypeDef FS_Desc =
 #if defined ( __ICCARM__ ) /* IAR Compiler */
   #pragma data_alignment=4
 #endif /* defined ( __ICCARM__ ) */
-/** USB standard device descriptor. */
+
+// USB standard device descriptor. Дескриптор устройства
 __ALIGN_BEGIN uint8_t USBD_FS_DeviceDesc[USB_LEN_DEV_DESC] __ALIGN_END =
 {
-  0x12,                       /*bLength */
-  USB_DESC_TYPE_DEVICE,       /*bDescriptorType*/
-  0x00,                       /*bcdUSB */
-  0x02,
+  USB_LEN_DEV_DESC,           // bLength - общая длина дескриптора устройства в байтах
+  USB_DESC_TYPE_DEVICE,       // bDescriptorType - показывает, что это за дескриптор. В данном случае - Device descriptor
+  0x00, 0x02,                 // bcdUSB - какую версию стандарта USB поддерживает устройство. 2.0
+	
+	// класс, подкласс устройства и протокол, по стандарту USB. У нас нули, означает каждый интерфейс сам за себя
   0x00,                       /*bDeviceClass*/
   0x00,                       /*bDeviceSubClass*/
   0x00,                       /*bDeviceProtocol*/
-  USB_MAX_EP0_SIZE,           /*bMaxPacketSize*/
-  LOBYTE(USBD_VID),           /*idVendor*/
-  HIBYTE(USBD_VID),           /*idVendor*/
-  LOBYTE(USBD_PID_FS),        /*idProduct*/
-  HIBYTE(USBD_PID_FS),        /*idProduct*/
-  0x00,                       /*bcdDevice rel. 2.00*/
-  0x02,
+	
+  USB_MAX_EP0_SIZE,           // bMaxPacketSize - максимальный размер пакетов для Endpoint 0 (при конфигурировании)
+	
+	// те самые пресловутые VID и PID,  по которым и определяется, что же это за устройство.
+  LOBYTE(USBD_VID), HIBYTE(USBD_VID), /*idVendor*/
+  LOBYTE(USBD_PID_FS), HIBYTE(USBD_PID_FS), /*idProduct*/
+	
+  0x00, 0x02,                 // bcdDevice rel. 2.00 DEVICE_VER_H.DEVICE_VER_L  номер релиза устройства
+	
+	// дальше идут индексы строк, описывающих производителя, устройство и серийный номер.
+	// Отображаются в свойствах устройства в диспетчере устройств
+	// А по серийному номеру подключенные устройства с одинаковым VID/PID различаются системой.
   USBD_IDX_MFC_STR,           /*Index of manufacturer  string*/
   USBD_IDX_PRODUCT_STR,       /*Index of product string*/
   USBD_IDX_SERIAL_STR,        /*Index of serial number string*/
-  USBD_MAX_NUM_CONFIGURATION  /*bNumConfigurations*/
+  USBD_MAX_NUM_CONFIGURATION  // bNumConfigurations - количество возможных конфигураций. У нас одна.
 };
 
 /* USB_DeviceDescriptor */
