@@ -329,27 +329,6 @@ bool apply_input_key = true;
 // Шаг перемещения мыши
 #define MOUSE_STEP 5
 
-//Mouse HID Report
-typedef struct {
-	uint8_t buttons;   // bit 0 = left, 1 = right, 2 = middle
-	int8_t x;          // movement X
-	int8_t y;          // movement Y
-	int8_t wheel;      // scroll
-} mouseHID;
-
-//Keyboard HID Report
-typedef struct
-{
-	uint8_t MODIFIER;
-	uint8_t RESERVED;
-	uint8_t KEYCODE1;
-	uint8_t KEYCODE2;
-	uint8_t KEYCODE3;
-	uint8_t KEYCODE4;
-	uint8_t KEYCODE5;
-	uint8_t KEYCODE6;
-} keyboardHID;
-
 keyboardHID keyboardhid = {0};
 
 /* ========================================================================== */
@@ -357,8 +336,8 @@ keyboardHID keyboardhid = {0};
 /* ========================================================================== */
 
 void SendKeyboardReport(keyboardHID *kb) {
+	HAL_Delay(50); // небольшая задержка для надёжности
     USBD_HID_SendReport_EP(&hUsbDeviceFS, (uint8_t *)kb, sizeof(keyboardHID), HID_KEYBOARD_EP);
-    HAL_Delay(2); // небольшая задержка для надёжности
 }
 
 // Удобная обёртка: нажать и отпустить одну клавишу
@@ -367,7 +346,6 @@ void PressKeyOnce(uint8_t keycode, uint8_t modifier) {
     report.MODIFIER = modifier;
     report.KEYCODE1 = keycode;
     SendKeyboardReport(&report);
-    HAL_Delay(10);
     // Отпустить
     report.MODIFIER = 0;
     report.KEYCODE1 = 0;
@@ -379,8 +357,10 @@ void PressKeyOnce(uint8_t keycode, uint8_t modifier) {
 /* ========================================================================== */
 
 void SendMouseReport(mouseHID *mouse) {
+	HAL_Delay(50);
+	#ifdef MOUSE_CONTROL
     USBD_HID_SendReport_EP(&hUsbDeviceFS, (uint8_t *)mouse, sizeof(mouseHID), HID_MOUSE_EP);
-    HAL_Delay(2);
+	#endif
 }
 
 // Ось перемещения мыши: false - Ось X, true - Ось Y
@@ -397,7 +377,6 @@ void MouseClick(uint8_t button) {
     mouseHID report = {0};
     report.buttons = button;
     SendMouseReport(&report);
-    HAL_Delay(20);
     report.buttons = 0;
     SendMouseReport(&report);
 }
@@ -406,17 +385,20 @@ void MouseClick(uint8_t button) {
 /*             --- Функции отправки для медиа устройства ---                  */
 /* ========================================================================== */
 
+void SendConsumerReport(сonsumerHID *сonsumer) {
+	HAL_Delay(50);
+    USBD_HID_SendReport_EP(&hUsbDeviceFS, (uint8_t *)сonsumer, sizeof(сonsumerHID), HID_CONSUMER_EP);
+}
+
 void SendConsumerCommand(uint16_t usage) {
-    uint8_t report[2] = {
-        (uint8_t)(usage & 0xFF),        // младший байт
-        (uint8_t)((usage >> 8) & 0xFF)  // старший байт
-    };
-    USBD_HID_SendReport_EP(&hUsbDeviceFS, report, 2, HID_CONSUMER_EP);
-    HAL_Delay(10);
+	сonsumerHID report = {0};
+	report.lobyte = LOBYTE(usage);
+	report.hibyte = HIBYTE(usage);
+    SendConsumerReport(&report);
     // Обязательно отпустить!
-    uint8_t release[2] = {0};
-    USBD_HID_SendReport_EP(&hUsbDeviceFS, release, 2, HID_CONSUMER_EP);
-		HAL_Delay(10);
+    report.lobyte = 0;
+	report.hibyte = 0;
+    SendConsumerReport(&report);
 }
 
 void SendConsumerByIndex(uint8_t index) {
@@ -481,7 +463,7 @@ void HandleEncoder(void) {
       } else if (current_mode == MODE_MOUSE) {
 				uint8_t RoadLength = delta * MOUSE_STEP;
 				if (axis_mouse_move)
-					MouseMove(RoadLength, 0);
+					MouseMove(-RoadLength, 0);
 				else
 					MouseMove(0, RoadLength);
       }
