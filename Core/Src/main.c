@@ -443,27 +443,25 @@ bool apply_input_key = true;
 /* ========================================================================== */
 
 void SendKeyboardReport(keyboardHID *kb) {
-    USBD_HID_SendReport_EP(&hUsbDeviceFS, (uint8_t *)kb, HID_KEYBOARD_EP_SIZE, HID_KEYBOARD_EP);
+	USBD_HID_SendReport_EP(&hUsbDeviceFS, (uint8_t *)kb, HID_KEYBOARD_EP_SIZE, HID_KEYBOARD_EP);
 	HAL_Delay(10);
 }
 
 void SendMediaReport(mediaHID *kb) {
-    USBD_HID_SendReport_EP(&hUsbDeviceFS, (uint8_t *)kb, HID_MEDIA_EP_SIZE, HID_KEYBOARD_EP);
+	USBD_HID_SendReport_EP(&hUsbDeviceFS, (uint8_t *)kb, HID_MEDIA_EP_SIZE, HID_KEYBOARD_EP);
 	HAL_Delay(10);
 }
 
 // Удобная обёртка: нажать и отпустить одну клавишу
 void PressKeyOnce(uint8_t keycode, uint8_t modifier) {
-    keyboardHID report = {0};
-	report.id = 1;
-    report.modifier = modifier;
-    report.keycode[0] = keycode;
-    SendKeyboardReport(&report);
-    // Отпустить
-	report.id = 1;
-    report.modifier = 0;
-    report.keycode[0] = 0;
-    SendKeyboardReport(&report);
+	keyboardHID report = {0};
+	report.MODIFIER = modifier;
+	report.KEYCODE1 = keycode;
+	SendKeyboardReport(&report);
+	// Отпустить
+	report.MODIFIER = 0;
+	report.KEYCODE1 = 0;
+	SendKeyboardReport(&report);
 }
 
 // Удобная обёртка: нажать и отпустить одну клавишу

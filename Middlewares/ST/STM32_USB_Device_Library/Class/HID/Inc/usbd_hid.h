@@ -29,9 +29,9 @@ extern "C" {
 #include  "usbd_ioreq.h"
 
 #define KEYBOARD_CONTROL
-#define MOUSE_CONTROL
+//#define MOUSE_CONTROL
 #define CONSUMER_CONTROL
-#define REMOTE_CONTROL
+//#define REMOTE_CONTROL
 //#define CUSTOM_CONTROL
 
 
@@ -71,9 +71,9 @@ extern "C" {
 #define HID_LED_SUPPORT 0
 
 #define HID_KEYBOARD_EP        0x81U
-#define HID_MOUSE_EP           0x84U
+#define HID_MOUSE_EP           0x82U
 #define HID_CONSUMER_EP        0x82U
-#define HID_REMOTE_EPIN        0x83U
+#define HID_REMOTE_EPIN        0x84U
 #define HID_CUSTOM_EPIN        0x85U
 #define HID_CUSTOM_EPOUT       0x01U
 
