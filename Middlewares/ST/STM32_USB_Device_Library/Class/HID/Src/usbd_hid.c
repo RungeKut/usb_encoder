@@ -383,7 +383,7 @@ __ALIGN_BEGIN static uint8_t USBD_HID_CfgDesc[USB_HID_CONFIG_DESC_SIZ] __ALIGN_E
 		// Interface Descriptor (9 byte)
 		/*  1 byte*/ 0x09,	//bLength: Interface Descriptor size
 		/*  2 byte*/ USB_DESC_TYPE_INTERFACE, //bDescriptorType: Interface descriptor type
-		/*  3 byte*/ 0x01,	//bInterfaceNumber: Number of Interface
+		/*  3 byte*/ 0x02,	//bInterfaceNumber: Number of Interface
 		/*  4 byte*/ 0x00,	//bAlternateSetting: Alternate setting
 		/*  5 byte*/ 0x01,	//bNumEndpoints
 		/*  6 byte*/ 0x03,	//bInterfaceClass: HID
@@ -409,7 +409,7 @@ __ALIGN_BEGIN static uint8_t USBD_HID_CfgDesc[USB_HID_CONFIG_DESC_SIZ] __ALIGN_E
 				/*  7 byte*/ 0xFF,	//bInterval: Polling Interval (255 ms)
 	#endif
 
-	#ifdef CUSTOM_CONTROL
+	#ifdef REMOTE_CONTROL
 	// ============ INTERFACE 3: CUSTOM CONTROL ============
 
 		// Interface Descriptor (9 byte)
@@ -427,7 +427,6 @@ __ALIGN_BEGIN static uint8_t USBD_HID_CfgDesc[USB_HID_CONFIG_DESC_SIZ] __ALIGN_E
 			/*  1 byte*/ 0x09,	//bLength: HID Descriptor size
 			/*  2 byte*/ HID_DESCRIPTOR_TYPE,	//bDescriptorType: HID
 			/*3-4 byte*/ 0x11, 0x01,	//bcdHID: HID Class Spec release number
-			/*  4 byte*/ 0x01, 
 			/*  5 byte*/ 0x00,	//bCountryCode: Hardware target country
 			/*  6 byte*/ 0x01,	//bNumDescriptors: Number of HID class descriptors to follow
 			/*  7 byte*/ 0x22,	//bDescriptorType
@@ -437,15 +436,6 @@ __ALIGN_BEGIN static uint8_t USBD_HID_CfgDesc[USB_HID_CONFIG_DESC_SIZ] __ALIGN_E
 				/*  1 byte*/ 0x07,	//bLength: Endpoint Descriptor size
 				/*  2 byte*/ USB_DESC_TYPE_ENDPOINT,	//bDescriptorType: ENDPOINT
 				/*  3 byte*/ HID_CUSTOM_EPIN,	//bEndpointAddress: Endpoint Address (IN)
-				/*  4 byte*/ 0x03,	//bmAttributes: Interrupt endpoint
-				/*  5 byte*/ HID_CUSTOM_EP_SIZE,	//wMaxPacketSize
-				/*  6 byte*/ 0x00,
-				/*  7 byte*/ HID_FS_BINTERVAL,	//bInterval: Polling Interval (10 ms)
-
-				// Endpoint Descriptor (7 byte)
-				/*  1 byte*/ 0x07,	//bLength: Endpoint Descriptor size
-				/*  2 byte*/ USB_DESC_TYPE_ENDPOINT,	//bDescriptorType: ENDPOINT
-				/*  3 byte*/ HID_CUSTOM_EPOUT,	//bEndpointAddress: Endpoint Address (IN)
 				/*  4 byte*/ 0x03,	//bmAttributes: Interrupt endpoint
 				/*  5 byte*/ HID_CUSTOM_EP_SIZE,	//wMaxPacketSize
 				/*  6 byte*/ 0x00,
