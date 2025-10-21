@@ -29,9 +29,11 @@ extern "C" {
 #include  "usbd_ioreq.h"
 
 #define KEYBOARD_CONTROL
-//#define MOUSE_CONTROL
-//#define CONSUMER_CONTROL
+#define MOUSE_CONTROL
+#define CONSUMER_CONTROL
+#define REMOTE_CONTROL
 //#define CUSTOM_CONTROL
+
 
 #ifdef KEYBOARD_CONTROL
 #define HID_INTERFACE_KEYBOARD 1
@@ -51,6 +53,12 @@ extern "C" {
 #define HID_INTERFACE_CONSUMER 0
 #endif
 
+#ifdef REMOTE_CONTROL
+#define HID_INTERFACE_REMOTE 1
+#else
+#define HID_INTERFACE_REMOTE 0
+#endif
+
 #ifdef CUSTOM_CONTROL
 #define HID_INTERFACE_CUSTOM 1
 #else
@@ -63,9 +71,10 @@ extern "C" {
 #define HID_LED_SUPPORT 0
 
 #define HID_KEYBOARD_EP        0x81U
-#define HID_MOUSE_EP           0x82U
-#define HID_CONSUMER_EP        0x83U
-#define HID_CUSTOM_EPIN        0x84U
+#define HID_MOUSE_EP           0x84U
+#define HID_CONSUMER_EP        0x82U
+#define HID_REMOTE_EPIN        0x83U
+#define HID_CUSTOM_EPIN        0x85U
 #define HID_CUSTOM_EPOUT       0x01U
 
 //Mouse HID Report
@@ -79,10 +88,14 @@ typedef struct {
 //Keyboard HID Report
 typedef struct
 {
-	uint8_t id;
-	uint8_t modifier;
-	uint8_t reserved;
-    uint8_t keycode[6];
+	uint8_t MODIFIER;
+	uint8_t RESERVED;
+	uint8_t KEYCODE1;
+	uint8_t KEYCODE2;
+	uint8_t KEYCODE3;
+	uint8_t KEYCODE4;
+	uint8_t KEYCODE5;
+	uint8_t KEYCODE6;
 } keyboardHID;
 
 // Media HID Report
@@ -92,6 +105,13 @@ typedef struct
     uint8_t keys;
 } mediaHID;
 
+// Remote HID Report
+typedef struct
+{
+    uint8_t id;
+    uint8_t keys;
+} remoteHID;
+
 //Consumer HID Report
 typedef struct {
 	uint8_t lobyte;
@@ -100,14 +120,45 @@ typedef struct {
 	uint8_t hibyte2;
 } сonsumerHID;
 
-#define HID_KEYBOARD_EP_SIZE   (sizeof(keyboardHID))
+#define HID_KEYBOARD_EP_SIZE   (sizeof(keyboardHID)) //8
 #define HID_MOUSE_EP_SIZE      (sizeof(mouseHID))
-#define HID_CONSUMER_EP_SIZE   (sizeof(сonsumerHID))
+#define HID_CONSUMER_EP_SIZE   (sizeof(сonsumerHID)) //8
+#define HID_REMOTE_EP_SIZE     (sizeof(remoteHID))
 #define HID_MEDIA_EP_SIZE      (sizeof(mediaHID))
 #define HID_CUSTOM_EP_SIZE     0x10U
 
-#define USB_HID_CONFIG_DESC_SIZ       9U + 25U //+ 25U //+ 25U //+ 25U // (9+9+7=25)
+#ifdef KEYBOARD_CONTROL
+#define USB_HID_CONFIG_DESC_SIZ_KEYBOARD (9 + 9 + 7)
+#else
+#define USB_HID_CONFIG_DESC_SIZ_KEYBOARD 0
+#endif
+
+#ifdef MOUSE_CONTROL
+#define USB_HID_CONFIG_DESC_SIZ_MOUSE (9 + 9 + 7)
+#else
+#define USB_HID_CONFIG_DESC_SIZ_MOUSE 0
+#endif
+
+#ifdef CONSUMER_CONTROL
+#define USB_HID_CONFIG_DESC_SIZ_CONSUMER (9 + 9 + 7)
+#else
+#define USB_HID_CONFIG_DESC_SIZ_CONSUMER 0
+#endif
+
+#ifdef REMOTE_CONTROL
+#define USB_HID_CONFIG_DESC_SIZ_REMOTE (9 + 9 + 7)
+#else
+#define USB_HID_CONFIG_DESC_SIZ_REMOTE 0
+#endif
+
+#ifdef CUSTOM_CONTROL
+#define USB_HID_CONFIG_DESC_SIZ_CUSTOM (9 + 9 + 7)
+#else
+#define USB_HID_CONFIG_DESC_SIZ_CUSTOM 0
+#endif
+
 #define USB_HID_DESC_SIZ              9U
+#define USB_HID_CONFIG_DESC_SIZ       (USB_HID_DESC_SIZ + USB_HID_CONFIG_DESC_SIZ_KEYBOARD + USB_HID_CONFIG_DESC_SIZ_MOUSE + USB_HID_CONFIG_DESC_SIZ_CONSUMER + USB_HID_CONFIG_DESC_SIZ_REMOTE + USB_HID_CONFIG_DESC_SIZ_CUSTOM)
 
 #define HID_DESCRIPTOR_TYPE           0x21U
 #define HID_REPORT_DESC               0x22U

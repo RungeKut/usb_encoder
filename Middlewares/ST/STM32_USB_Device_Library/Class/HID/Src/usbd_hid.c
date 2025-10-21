@@ -128,30 +128,80 @@ __ALIGN_BEGIN static uint8_t HID_MOUSE_ReportDesc[] __ALIGN_END =
 	0x05, 0x01, // USAGE_PAGE (Generic Desktop)
 	0x09, 0x02, // USAGE (Mouse)
 	0xA1, 0x01, // COLLECTION (Application)
-		0x09, 0x01, // Report ID (3)
-		0xA1, 0x00, // USAGE (Pointer)
-		0x05, 0x09, // COLLECTION (Physical)
-			0x19, 0x01, // USAGE_PAGE (Button)
-			0x29, 0x03, // USAGE_MINIMUM (Button 1)
-			0x15, 0x00, // USAGE_MAXIMUM (Button 3)
-			0x25, 0x01, // LOGICAL_MINIMUM (0)
-			0x95, 0x03, // LOGICAL_MAXIMUM (1)
-			0x75, 0x01, // REPORT_COUNT (3)
-			0x81, 0x02, // REPORT_SIZE (1)
-			0x95, 0x01, // INPUT (Data,Var,Abs)
-			0x75, 0x05, // REPORT_COUNT (1)
-			0x81, 0x03, // REPORT_SIZE (5)
-			0x05, 0x01, // INPUT (Cnst,Var,Abs)
-			0x09, 0x30, // USAGE_PAGE (Generic Desktop)
-			0x09, 0x31, // USAGE (X)
-			0x09, 0x38, // USAGE (Y)
+		0x09, 0x01, // USAGE (Pointer)
+		0xA1, 0x00, // COLLECTION (Physical)
+			0x05, 0x09, // USAGE_PAGE (Button)
+			0x19, 0x01, // USAGE_MINIMUM (Button 1)
+			0x29, 0x03, // USAGE_MAXIMUM (Button 3)
+			0x15, 0x00, // LOGICAL_MINIMUM (0)
+			0x25, 0x01, // LOGICAL_MAXIMUM (1)
+			0x95, 0x03, // REPORT_COUNT (3)
+			0x75, 0x01, // REPORT_SIZE (1)
+			0x81, 0x02, // INPUT (Data,Var,Abs)
+			0x95, 0x01, // REPORT_COUNT (1)
+			0x75, 0x05, // REPORT_SIZE (5)
+			0x81, 0x03, // INPUT (Cnst,Var,Abs)
+			0x05, 0x01, // USAGE_PAGE (Generic Desktop)
+			0x09, 0x30, // USAGE (X)
+			0x09, 0x31, // USAGE (Y)
 			0x15, 0x81, // LOGICAL_MINIMUM (-127)
 			0x25, 0x7F, // LOGICAL_MAXIMUM (127)
 			0x75, 0x08, // REPORT_SIZE (8)
-			0x95, 0x03, // REPORT_COUNT (2)
+			0x95, 0x02, // REPORT_COUNT (2)
 			0x81, 0x06, // INPUT (Data,Var,Rel)
 		0xC0,       // END_COLLECTION
 	0xC0        // END_COLLECTION
+};
+
+__ALIGN_BEGIN static uint8_t HID_REMOTE_ReportDesc[] __ALIGN_END =
+{
+0x05, 0x0C, // USAGE_PAGE (Consumer Devices)	
+0x09, 0x01, // USAGE (Consumer Control)	
+0xA1, 0x01, // COLLECTION (Application)	
+  0x09, 0x02, // USAGE (Numeric Key Pad)	
+  0xA1, 0x02, // COLLECTION (Logical)	
+    0x05, 0x09, // USAGE_PAGE (Button)	
+    0x19, 0x01, // USAGE_MINIMUM (Button 1)	
+    0x29, 0x0A, // USAGE_MAXIMUM (Button 10)	
+    0x15, 0x01, // LOGICAL_MINIMUM (1)	
+    0x25, 0x0A, // LOGICAL_MAXIMUM (10)	
+    0x75, 0x04, // REPORT_SIZE (4)	
+    0x95, 0x01, // REPORT_COUNT (1)	
+    0x81, 0x00, // INPUT (Data,Ary,Abs)	
+  0xC0,       // END_COLLECTI
+  0x05, 0x0C, // USAGE_PAGE (Consumer Devices)	
+  0x09, 0x86, // USAGE (Channel)	
+  0x09, 0xE0, // USAGE (Volume)	
+  0x15, 0xFF, // LOGICAL_MINIMUM (-1)	
+  0x25, 0x01, // LOGICAL_MAXIMUM (1)	
+  0x75, 0x02, // REPORT_SIZE (2)	
+  0x95, 0x02, // REPORT_COUNT (2)	
+  0x81, 0x46, // INPUT (Data,Var,Rel,Null)	
+  0x09, 0xE2, // USAGE (Mute)	
+  0x09, 0x30, // USAGE (Power)	
+  0x09, 0x34, // USAGE (Sleep Mode)	
+  0x09, 0x60, // USAGE (Data On Screen)	
+  0x09, 0x64, // USAGE (Broadcast Mode)	
+  0x09, 0x83, // USAGE (Recall Last)	
+  0x09, 0x81, // USAGE (Assign Selection)	
+  0x15, 0x01, // LOGICAL_MINIMUM (1)	
+  0x25, 0x07, // LOGICAL_MAXIMUM (7)	
+  0x75, 0x04, // REPORT_SIZE (4)	
+  0x95, 0x01, // REPORT_COUNT (1)	
+  0x81, 0x00, // INPUT (Data,Ary,Abs)	
+  0x09, 0x80, // USAGE (Selection)	
+  0xA1, 0x02, // COLLECTION (Logical)	
+    0x05, 0x09, // USAGE_PAGE (Button)	
+    0x19, 0x01, // USAGE_MINIMUM (Button 1)	
+    0x29, 0x03, // USAGE_MAXIMUM (Button 3)	
+    0x15, 0x01, // LOGICAL_MINIMUM (1)	
+    0x25, 0x03, // LOGICAL_MAXIMUM (3)	
+    0x75, 0x02, // REPORT_SIZE (2)	
+    0x81, 0x00, // INPUT (Data,Ary,Abs)	
+  0xC0,       // END_COLLECTI
+  0x15, 0x02, // LOGICAL_MINIMUM (2)	
+  0x81, 0x03, // INPUT (Cnst,Var,Abs)	
+0xC0,       // END_COLLECTI
 };
 
 __ALIGN_BEGIN static uint8_t HID_CONSUMER_ReportDesc[] __ALIGN_END =
@@ -244,9 +294,9 @@ __ALIGN_BEGIN static uint8_t HID_CUSTOM_ReportDesc[] __ALIGN_END =
 };
 
 /* Размеры дескрипторов ------------------------------------------------------*/
-#define KEYBOARD_REPORT_DESC_SIZE  (sizeof(HID_KEYBOARD_ReportDesc))
+#define KEYBOARD_REPORT_DESC_SIZE  (sizeof(HID_KEYBOARD_ReportDesc)) //62
 #define MOUSE_REPORT_DESC_SIZE     (sizeof(HID_MOUSE_ReportDesc))
-#define CONSUMER_REPORT_DESC_SIZE  (sizeof(HID_CONSUMER_ReportDesc))
+#define CONSUMER_REPORT_DESC_SIZE  (sizeof(HID_CONSUMER_ReportDesc)) //101
 #define CUSTOM_REPORT_DESC_SIZE    (sizeof(HID_CUSTOM_ReportDesc))
 
 /* Configuration Descriptor --------------------------------------------------*/
@@ -280,7 +330,7 @@ __ALIGN_BEGIN static uint8_t USBD_HID_CfgDesc[USB_HID_CONFIG_DESC_SIZ] __ALIGN_E
 			// HID Descriptor (9 byte)
 			/*  1 byte*/ 0x09,	//bLength: HID Descriptor size
 			/*  2 byte*/ HID_DESCRIPTOR_TYPE, // bDescriptorType: HID
-			/*3-4 byte*/ 0x11, 0x01,	//bcdHID: HID Class Spec release number
+			/*3-4 byte*/ 0x10, 0x01,	//bcdHID: HID Class Spec release number
 			/*  5 byte*/ 0x00,	//bCountryCode: Hardware target country
 			/*  6 byte*/ 0x01,	//bNumDescriptors: Number of HID class descriptors to follow
 			/*  7 byte*/ 0x22,	//bDescriptorType
@@ -333,7 +383,7 @@ __ALIGN_BEGIN static uint8_t USBD_HID_CfgDesc[USB_HID_CONFIG_DESC_SIZ] __ALIGN_E
 		// Interface Descriptor (9 byte)
 		/*  1 byte*/ 0x09,	//bLength: Interface Descriptor size
 		/*  2 byte*/ USB_DESC_TYPE_INTERFACE, //bDescriptorType: Interface descriptor type
-		/*  3 byte*/ 0x02,	//bInterfaceNumber: Number of Interface
+		/*  3 byte*/ 0x01,	//bInterfaceNumber: Number of Interface
 		/*  4 byte*/ 0x00,	//bAlternateSetting: Alternate setting
 		/*  5 byte*/ 0x01,	//bNumEndpoints
 		/*  6 byte*/ 0x03,	//bInterfaceClass: HID
