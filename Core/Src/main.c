@@ -335,37 +335,42 @@ bool apply_input_key = true;
 
 void SendKeyboardReport(keyboardHID *kb) {
     USBD_HID_SendReport_EP(&hUsbDeviceFS, (uint8_t *)kb, HID_KEYBOARD_EP_SIZE, HID_KEYBOARD_EP);
-	HAL_Delay(20);
+	HAL_Delay(10);
 }
 
 void SendMediaReport(mediaHID *kb) {
     USBD_HID_SendReport_EP(&hUsbDeviceFS, (uint8_t *)kb, HID_MEDIA_EP_SIZE, HID_KEYBOARD_EP);
-	HAL_Delay(20);
+	HAL_Delay(10);
 }
 
 // Удобная обёртка: нажать и отпустить одну клавишу
 void PressKeyOnce(uint8_t keycode, uint8_t modifier) {
     keyboardHID report = {0};
 	report.id = 1;
-    report.modifiers = modifier;
-    report.key1 = keycode;
+    report.modifier = modifier;
+    report.keycode[0] = keycode;
     SendKeyboardReport(&report);
     // Отпустить
 	report.id = 1;
-    report.modifiers = 0;
-    report.key1 = 0;
+    report.modifier = 0;
+    report.keycode[0] = 0;
     SendKeyboardReport(&report);
 }
 
 // Удобная обёртка: нажать и отпустить одну клавишу
-void PressMediaKeyOnce(uint8_t keycode) {
-    mediaHID report = {0};
-	report.id = 2;
-    report.keys = keycode;
-    SendMediaReport(&report);
-    // Отпустить
-    report.keys = 0;
-    SendMediaReport(&report);
+void PressMediaKeyOnce(uint16_t keycode) {
+	uint8_t report[3];
+	report[0]= HID_MEDIA_REPORT;
+	report[1]= LOBYTE(keycode);
+	report[2]= HIBYTE(keycode);
+	USBD_HID_SendReport_EP(&hUsbDeviceFS, report, sizeof(report), HID_KEYBOARD_EP);
+	HAL_Delay(30);
+
+	report[0]= HID_MEDIA_REPORT;
+	report[1]= 0x00;
+	report[2]= 0x00;
+	USBD_HID_SendReport_EP(&hUsbDeviceFS, report, sizeof(report), HID_KEYBOARD_EP);
+	HAL_Delay(30);
 }
 
 /* ========================================================================== */
@@ -459,11 +464,11 @@ void HandleEncoder(void) {
                 //consumer_index = (consumer_index - delta + CONSUMER_COUNT) % CONSUMER_COUNT;
 				if (delta < 0)
 				{
-					PressMediaKeyOnce(HIDKEY_MEDIA_VOLUME_UP);
+					PressMediaKeyOnce(0xE9);
 				}
 				if (delta > 0)
 				{
-					PressMediaKeyOnce(HIDKEY_MEDIA_VOLUME_DOWN);
+					PressMediaKeyOnce(0xEA);
 				}
 			} else if (current_mode == MODE_KEYBOARD) {
         logical_index = (logical_index - delta + 2 * KEY_COUNT) % (2 * KEY_COUNT);
@@ -504,7 +509,7 @@ void OneShortPress(void) {
 	} else if (current_mode == MODE_MOUSE) {
 		MouseClick(0x01); // Left click
 	} else if (current_mode == MODE_CONSUMER) {
-		PressMediaKeyOnce(HIDKEY_MEDIA_MUTE);
+		PressMediaKeyOnce(0x0030);
 //		SendConsumerCommand(consumer_list[consumer_index].usage);
 //		for (int i = 0; i <= consumer_index; i++) {
 //			// Включить LED
@@ -547,7 +552,7 @@ void OneDoubleClick(void) {
 		PressKeyOnce(HIDKEY_MODIFIER_LEFT_SHIFT, HIDKEY_MODIFIER_LEFT_ALT); // Left Shift, Left Alt
 	} else if (current_mode == MODE_CONSUMER) {
 //		SendConsumerCommand(consumer_list[8].usage);
-		PressMediaKeyOnce(HIDKEY_MEDIA_EJECT);
+		PressMediaKeyOnce(0x0032);
 	} else if (current_mode == MODE_MOUSE) {
 		MouseClick(0x02); // Right click
 		axis_mouse_move = axis_mouse_move ? false : true;

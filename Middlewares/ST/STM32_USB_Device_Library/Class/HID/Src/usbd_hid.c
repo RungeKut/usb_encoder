@@ -48,45 +48,79 @@ USBD_ClassTypeDef  USBD_HID =
 __ALIGN_BEGIN static uint8_t HID_KEYBOARD_ReportDesc[] __ALIGN_END =
 {
   0x05, 0x01,        // Usage Page (Generic Desktop Ctrls)
-  0x09, 0x06,        // Usage (Keyboard)
-  0xA1, 0x01,        // Collection (Application)
-  0x85, 0x01,        //   Report ID (1)
-  0x05, 0x07,        //   Usage Page (Kbrd/Keypad)
-  0x75, 0x01,        //   Report Size (1)
-  0x95, 0x08,        //   Report Count (8)
-  0x19, 0xE0,        //   Usage Minimum (0xE0)
-  0x29, 0xE7,        //   Usage Maximum (0xE7)
-  0x15, 0x00,        //   Logical Minimum (0)
-  0x25, 0x01,        //   Logical Maximum (1)
-  0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
-  0x95, 0x03,        //   Report Count (3)
-  0x75, 0x08,        //   Report Size (8)
-  0x15, 0x00,        //   Logical Minimum (0)
-  0x25, 0x64,        //   Logical Maximum (100)
-  0x05, 0x07,        //   Usage Page (Kbrd/Keypad)
-  0x19, 0x00,        //   Usage Minimum (0x00)
-  0x29, 0x65,        //   Usage Maximum (0x65)
-  0x81, 0x00,        //   Input (Data,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
-  0xC0,              // End Collection
-  0x05, 0x0C,        // Usage Page (Consumer)
-  0x09, 0x01,        // Usage (Consumer Control)
-  0xA1, 0x01,        // Collection (Application)
-  0x85, 0x02,        //   Report ID (2)
-  0x05, 0x0C,        //   Usage Page (Consumer)
-  0x15, 0x00,        //   Logical Minimum (0)
-  0x25, 0x01,        //   Logical Maximum (1)
-  0x75, 0x01,        //   Report Size (1)
-  0x95, 0x08,        //   Report Count (8)
-  0x09, 0xB5,        //   Usage (Scan Next Track)
-  0x09, 0xB6,        //   Usage (Scan Previous Track)
-  0x09, 0xB7,        //   Usage (Stop)
-  0x09, 0xB8,        //   Usage (Eject)
-  0x09, 0xCD,        //   Usage (Play/Pause)
-  0x09, 0xE2,        //   Usage (Mute)
-  0x09, 0xE9,        //   Usage (Volume Increment)
-  0x09, 0xEA,        //   Usage (Volume Decrement)
-  0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
-  0xC0,              // End Collection
+        0x09, 0x06,        // Usage (Keyboard)
+        0xA1, 0x01,        // Collection (Application)
+
+        0x85, 0x01,        //   Report ID (1)
+
+        0x05, 0x07,        //   Usage Page (Kbrd/Keypad)
+        0x19, 0xE0,        //   Usage Minimum (0xE0)
+        0x29, 0xE7,        //   Usage Maximum (0xE7)
+
+        // it seam we missed  the shit ctrl etc .. here
+        0x15, 0x00,        //   Logical Minimum (0)
+        0x25, 0x01,        //   Logical Maximum (1)
+        0x75, 0x01,        //   Report Size (1)
+        0x95, 0x08,        //   Report Count (8)
+        0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+        0x95, 0x01,        //   Report Count (1)
+        0x75, 0x08,        //   Report Size (8)
+        0x81, 0x03,        //   Input (Const,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+#if HID_LED_SUPPORT
+            // --------------------- output report for LED
+    0x95, 0x05,                    //   REPORT_COUNT (5)
+    0x75, 0x01,                    //   REPORT_SIZE (1)
+    0x05, 0x08,                    //   USAGE_PAGE (LEDs)
+    0x19, 0x01,                    //   USAGE_MINIMUM (Num Lock)
+    0x29, 0x05,                    //   USAGE_MAXIMUM (Kana)
+    0x91, 0x02,                    //   OUTPUT (Data,Var,Abs)
+    0x95, 0x01,                    //   REPORT_COUNT (1)
+    0x75, 0x03,                    //   REPORT_SIZE (3)
+    0x91, 0x03,                    //   OUTPUT (Cnst,Var,Abs)
+#endif
+        0x95, 0x06,        //   Report Count (6)
+        0x75, 0x08,        //   Report Size (8)
+        0x15, 0x00,        //   Logical Minimum (0)
+        0x25, 0x65,        //   Logical Maximum (101)
+        0x05, 0x07,        //   Usage Page (Kbrd/Keypad)
+        0x19, 0x00,        //   Usage Minimum (0x00)
+        0x29, 0x65,        //   Usage Maximum (0x65)
+        0x81, 0x00,        //   Input (Data,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
+        0xC0,              // End Collection
+
+        // 47 bytes
+#if HID_MEDIA_REPORT
+        //help from http://www.microchip.com/forums/m618147.aspx
+        // this way of describing and sending media control is convenient
+        // short descriptor that permit all kidn meda by sending "usage" code
+        // see usb hid spec for full list
+        // it is possible to define one media key per bit it requires more space
+        // for descripotor and report ending is tighlyu couple to decriptor
+        // so it is not as convenient
+        // one such working code can be find here https://github.com/markwj/hidmedia/blob/master/hidmedia.X/usb_descriptors.c
+        //
+
+        0x05, 0x0C,        // Usage Page (Consumer)
+        0x09, 0x01,        // Usage (Consumer Control)
+        0xA1, 0x01,        // Collection (Application)
+        0x85, HID_MEDIA_REPORT,        //   Report ID (VOLUME_REPORT )
+        0x19, 0x00,        //   Usage Minimum (Unassigned)
+        0x2A, 0x3C, 0x02,  //   Usage Maximum (AC Format)
+        0x15, 0x00,        //   Logical Minimum (0)
+        0x26, 0x3C, 0x02,  //   Logical Maximum (572)
+        0x95, 0x01,        //   Report Count (1)
+        0x75, 0x10,        //   Report Size (16)
+        0x81, 0x00,        //   Input (Data,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
+        0xC0,              // End Collection
+
+        // how to format the 3 byte report
+        // byte 0 report ID = 0x02 (VOLUME_REPORT)
+        // byte 1 media code  for ex VOL_UP 0xE9 , VOL_DONW 0xEA ... etc
+        // byte 2  0x00
+        // a second  report with 0 code shal be send to avoid "key repaeat"
+
+        // 25 bytes
+#endif
 };
 
 __ALIGN_BEGIN static uint8_t HID_MOUSE_ReportDesc[] __ALIGN_END =
@@ -192,109 +226,6 @@ __ALIGN_BEGIN static uint8_t HID_CONSUMER_ReportDesc[] __ALIGN_END =
 	0xC0	//End Collection
 };
 
-__ALIGN_BEGIN static uint8_t HID_XBOX_ONE_CONTROLLER_ReportDesc[] __ALIGN_END =
-{
-  0x05, 0x01,        // Usage Page (Generic Desktop)
-  0x09, 0x05,        // Usage (Game Pad)
-  0xa1, 0x01,        // Collection (Application)
-
-                     //   # button packet
-  0xa1, 0x00,        //   Collection (Physical)
-  0x85, 0x20,        //     Report ID (0x20)
-
-                     //     # skip unknown field and counter
-  0x05, 0x01,        //     Usage Page (Generic Desktop)
-  0x09, 0x00,        //     Usage (Undefined)
-  0x75, 0x08,        //     Report Size (8)
-  0x95, 0x02,        //     Report Count (2)
-  0x81, 0x03,        //     Input (Constant, Variable, Absolute)
-
-                     //     payload size
-  0x05, 0x01,        //     Usage Page (Generic Desktop)
-  0x09, 0x3b,        //     Usage (Byte Count)
-  0x75, 0x08,        //     Report Size (8)
-  0x95, 0x01,        //     Report Count (1)
-  0x81, 0x02,        //     Input (Data, Variable, Absolute)
-
-                     //     # 16 buttons
-  0x05, 0x09,        //     Usage Page (Button)
-  0x19, 0x01,        //     Usage Minimum (Button 1)
-  0x29, 0x10,        //     Usage Maximum (Button 16)
-  0x15, 0x00,        //     Logical Minimum (0)
-  0x25, 0x01,        //     Logical Maximum (1)
-  0x75, 0x01,        //     Report Size (1)
-  0x95, 0x10,        //     Report Count (16)
-  0x81, 0x02,        //     Input (Data, Variable, Absolute)
-
-                     //     # triggers
-  0x15, 0x00,        //     Logical Minimum (0)
-  0x26, 0xff, 0x03,  //     Logical Maximum (1023)
-  0x35, 0x00,        //     Physical Minimum (0)
-  0x46, 0xff, 0x03,  //     Physical Maximum (1023)
-  0x75, 0x10,        //     Report Size (16)
-  0x95, 0x02,        //     Report Count (2)
-  0x05, 0x01,        //     Usage Page (Generic Desktop)
-  0x09, 0x33,        //     Usage (Rx)
-  0x09, 0x34,        //     Usage (Ry)
-  0x81, 0x02,        //     Input (Data, Variable, Absolute)
-
-                     //     # sticks
-  0x75, 0x10,        //     Report Size (16)
-  0x16, 0x00, 0x80,  //     Logical Minimum (-32768)
-  0x26, 0xff, 0x7f,  //     Logical Maximum (32767)
-  0x36, 0x00, 0x80,  //     Physical Minimum (-32768)
-  0x46, 0xff, 0x7f,  //     Physical Maximum (32767)
-  0x05, 0x01,        //     Usage Page (Generic Desktop)
-  0x09, 0x01,        //     Usage (Pointer)
-  0xa1, 0x00,        //     Collection (Physical)
-  0x95, 0x02,        //       Report Count (2)
-  0x05, 0x01,        //       Usage Page (Generic Desktop)
-  0x09, 0x30,        //       Usage (X)
-  0x09, 0x31,        //       Usage (Y)
-  0x81, 0x02,        //       Input (Data, Variable, Absolute)
-  0xc0,              //     End Collection
-  0x05, 0x01,        //     Usage Page (Generic Desktop)
-  0x09, 0x01,        //     Usage (Pointer)
-  0xa1, 0x00,        //     Collection (Physical)
-  0x95, 0x02,        //       Report Count (2)
-  0x05, 0x01,        //       Usage Page (Generic Desktop)
-  0x09, 0x32,        //       Usage (Z)
-  0x09, 0x35,        //       Usage (Rz)
-  0x81, 0x02,        //       Input (Data, Variable, Absolute)
-  0xc0,              //     End Collection
-  0xc0,              //   End Collection
-
-                     //   # xbox button packet
-  0xa1, 0x00,        //   Collection (Physical)
-  0x85, 0x07,        //     Report Id (0x07)
-
-                     //     # skip unknown field and counter
-  0x05, 0x01,        //     Usage Page (generic desktop)
-  0x09, 0x00,        //     Usage (Undefined)
-  0x95, 0x02,        //     Report Count (2)
-  0x75, 0x08,        //     Report Size (8)
-  0x81, 0x03,        //     Input (Constant, Variable, Absolute)
-
-                     //     # payload size
-  0x05, 0x01,        //     Usage Page (Generic Desktop)
-  0x09, 0x3b,        //     Usage (Byte Count)
-  0x75, 0x08,        //     Report Size (8)
-  0x95, 0x01,        //     Report Count (1)
-  0x81, 0x03,        //     Input (Constant, Variable, Absolute)
-
-                     //     # lone button
-  0x05, 0x09,        //     Usage Page (Button)
-  0x09, 0x10,        //     Usage (Button 17)
-  0x15, 0x00,        //     Logical Minimum (0)
-  0x25, 0x01,        //     Logical Maximum (1)
-  0x75, 0x08,        //     Report Size (8)
-  0x95, 0x01,        //     Report Count (1)
-  0x81, 0x02,        //     Input (Data, Variable, Absolute)
-
-  0xc0,              //   End Collection
-  0xc0               // End Collection
-};
-
 __ALIGN_BEGIN static uint8_t HID_CUSTOM_ReportDesc[] __ALIGN_END =
 {
   0x05, 0x01, // USAGE_PAGE (стандартный рабочий стол)
@@ -326,7 +257,7 @@ __ALIGN_BEGIN static uint8_t USBD_HID_CfgDesc[USB_HID_CONFIG_DESC_SIZ] __ALIGN_E
 	/*  1 byte*/ 0x09,	//bLength: Configuration Descriptor size - длина дескриптора конфигурации
 	/*  2 byte*/ USB_DESC_TYPE_CONFIGURATION,	//bDescriptorType: Configuration - тип дескриптора - конфигурация
 	/*3-4 byte*/ LOBYTE(USB_HID_CONFIG_DESC_SIZ), HIBYTE(USB_HID_CONFIG_DESC_SIZ),	//wTotalLength - общий размер всего дерева под данной конфигурацией в байтах
-	/*  5 byte*/ 0x02,	//bNumInterfaces -  в конфигурации три интерфейса
+	/*  5 byte*/ HID_INTERFACE_COUNT,	//bNumInterfaces -  в конфигурации три интерфейса
 	/*  6 byte*/ 0x01,	//bConfigurationValue - индекс текущей конфигурации
 	/*  7 byte*/ 0x00,	//iConfiguration - индекс строки, которая описывает эту конфигурацию
 	/*  8 byte*/ 0xA0,	//bmAttributes - признак того, что устройство будет питаться от шины USB
@@ -349,7 +280,7 @@ __ALIGN_BEGIN static uint8_t USBD_HID_CfgDesc[USB_HID_CONFIG_DESC_SIZ] __ALIGN_E
 			// HID Descriptor (9 byte)
 			/*  1 byte*/ 0x09,	//bLength: HID Descriptor size
 			/*  2 byte*/ HID_DESCRIPTOR_TYPE, // bDescriptorType: HID
-			/*3-4 byte*/ 0x10, 0x01,	//bcdHID: HID Class Spec release number
+			/*3-4 byte*/ 0x11, 0x01,	//bcdHID: HID Class Spec release number
 			/*  5 byte*/ 0x00,	//bCountryCode: Hardware target country
 			/*  6 byte*/ 0x01,	//bNumDescriptors: Number of HID class descriptors to follow
 			/*  7 byte*/ 0x22,	//bDescriptorType
