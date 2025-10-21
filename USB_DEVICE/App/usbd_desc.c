@@ -62,10 +62,10 @@
   * @{
   */
 
-#define USBD_VID     0x046D
-#define USBD_LANGID_STRING     1033
+#define USBD_VID     0//1155
+#define USBD_LANGID_STRING     0//1033
 #define USBD_MANUFACTURER_STRING     "PrimaElectronics"
-#define USBD_PID_FS     0xC31D
+#define USBD_PID_FS     0//22315
 #define USBD_PRODUCT_STRING_FS     "USB Encoder"
 #define USBD_CONFIGURATION_STRING_FS     "HID Config"
 #define USBD_INTERFACE_STRING_FS     "HID Interface"
@@ -149,7 +149,7 @@ __ALIGN_BEGIN uint8_t USBD_FS_DeviceDesc[USB_LEN_DEV_DESC] __ALIGN_END =
 {
   USB_LEN_DEV_DESC,           // bLength - общая длина дескриптора устройства в байтах
   USB_DESC_TYPE_DEVICE,       // bDescriptorType - показывает, что это за дескриптор. В данном случае - Device descriptor
-  0x10, 0x01,                 // bcdUSB - какую версию стандарта USB поддерживает устройство. 1.1
+  0x00, 0x02,                 // bcdUSB - какую версию стандарта USB поддерживает устройство. 2.0
 	
 	// класс, подкласс устройства и протокол, по стандарту USB. У нас нули, означает каждый интерфейс сам за себя
   0x00,                       /*bDeviceClass*/

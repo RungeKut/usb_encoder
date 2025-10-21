@@ -63,10 +63,10 @@ void SystemClock_Config(void);
 //https://www.usb.org/sites/default/files/hut1_3_0.pdf
 //Переключение режима энкодера
 typedef enum {
-  MODE_ENCODER,
+	MODE_ENCODER,
 	MODE_CONSUMER,
-  MODE_KEYBOARD,
-  MODE_MOUSE,
+	MODE_KEYBOARD,
+	MODE_MOUSE,
 	MODE_COUNT        // ← специальный "счётчик" количества элементов — всегда последним!
 } device_mode_t;
 
@@ -329,27 +329,43 @@ bool apply_input_key = true;
 // Шаг перемещения мыши
 #define MOUSE_STEP 5
 
-keyboardHID keyboardhid = {0};
-
 /* ========================================================================== */
 /*                 --- Функции отправки для клавиатуры ---                    */
 /* ========================================================================== */
 
 void SendKeyboardReport(keyboardHID *kb) {
-	HAL_Delay(50); // небольшая задержка для надёжности
-    USBD_HID_SendReport_EP(&hUsbDeviceFS, (uint8_t *)kb, sizeof(keyboardHID), HID_KEYBOARD_EP);
+    USBD_HID_SendReport_EP(&hUsbDeviceFS, (uint8_t *)kb, HID_KEYBOARD_EP_SIZE, HID_KEYBOARD_EP);
+	HAL_Delay(20);
+}
+
+void SendMediaReport(mediaHID *kb) {
+    USBD_HID_SendReport_EP(&hUsbDeviceFS, (uint8_t *)kb, HID_MEDIA_EP_SIZE, HID_KEYBOARD_EP);
+	HAL_Delay(20);
 }
 
 // Удобная обёртка: нажать и отпустить одну клавишу
 void PressKeyOnce(uint8_t keycode, uint8_t modifier) {
     keyboardHID report = {0};
-    report.MODIFIER = modifier;
-    report.KEYCODE1 = keycode;
+	report.id = 1;
+    report.modifiers = modifier;
+    report.key1 = keycode;
     SendKeyboardReport(&report);
     // Отпустить
-    report.MODIFIER = 0;
-    report.KEYCODE1 = 0;
+	report.id = 1;
+    report.modifiers = 0;
+    report.key1 = 0;
     SendKeyboardReport(&report);
+}
+
+// Удобная обёртка: нажать и отпустить одну клавишу
+void PressMediaKeyOnce(uint8_t keycode) {
+    mediaHID report = {0};
+	report.id = 2;
+    report.keys = keycode;
+    SendMediaReport(&report);
+    // Отпустить
+    report.keys = 0;
+    SendMediaReport(&report);
 }
 
 /* ========================================================================== */
@@ -357,10 +373,8 @@ void PressKeyOnce(uint8_t keycode, uint8_t modifier) {
 /* ========================================================================== */
 
 void SendMouseReport(mouseHID *mouse) {
-	HAL_Delay(50);
-	#ifdef MOUSE_CONTROL
     USBD_HID_SendReport_EP(&hUsbDeviceFS, (uint8_t *)mouse, sizeof(mouseHID), HID_MOUSE_EP);
-	#endif
+	HAL_Delay(20);
 }
 
 // Ось перемещения мыши: false - Ось X, true - Ось Y
@@ -386,7 +400,7 @@ void MouseClick(uint8_t button) {
 /* ========================================================================== */
 
 void SendConsumerReport(сonsumerHID *сonsumer) {
-	HAL_Delay(50);
+	HAL_Delay(10);
     USBD_HID_SendReport_EP(&hUsbDeviceFS, (uint8_t *)сonsumer, sizeof(сonsumerHID), HID_CONSUMER_EP);
 }
 
@@ -442,8 +456,15 @@ void HandleEncoder(void) {
 				}
 				
 			} else if (current_mode == MODE_CONSUMER) {
-                consumer_index = (consumer_index - delta + CONSUMER_COUNT) % CONSUMER_COUNT;
-				
+                //consumer_index = (consumer_index - delta + CONSUMER_COUNT) % CONSUMER_COUNT;
+				if (delta < 0)
+				{
+					PressMediaKeyOnce(HIDKEY_MEDIA_VOLUME_UP);
+				}
+				if (delta > 0)
+				{
+					PressMediaKeyOnce(HIDKEY_MEDIA_VOLUME_DOWN);
+				}
 			} else if (current_mode == MODE_KEYBOARD) {
         logical_index = (logical_index - delta + 2 * KEY_COUNT) % (2 * KEY_COUNT);
 				// Определяем физическую клавишу и нужно ли Shift
@@ -477,57 +498,60 @@ void HandleEncoder(void) {
 //Одно короткое нажатие
 void OneShortPress(void) {
 	if (current_mode == MODE_ENCODER) {
-    PressKeyOnce(HIDKEY_ENTER, HIDKEY_MODIFIER_NONE);  // press 'Enter'
-  } else if (current_mode == MODE_KEYBOARD) {
+		PressKeyOnce(HIDKEY_ENTER, HIDKEY_MODIFIER_NONE);  // press 'Enter'
+	} else if (current_mode == MODE_KEYBOARD) {
 		apply_input_key = true;
-  } else if (current_mode == MODE_MOUSE) {
-    MouseClick(0x01); // Left click
-  } else if (current_mode == MODE_CONSUMER) {
-    SendConsumerCommand(consumer_list[consumer_index].usage);
-		for (int i = 0; i <= consumer_index; i++) {
-      // Включить LED
-      HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_RESET);
-      HAL_Delay(20);
-      // Отключить LED
-      HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_SET);
-      HAL_Delay(80);
-    }
-  }
+	} else if (current_mode == MODE_MOUSE) {
+		MouseClick(0x01); // Left click
+	} else if (current_mode == MODE_CONSUMER) {
+		PressMediaKeyOnce(HIDKEY_MEDIA_MUTE);
+//		SendConsumerCommand(consumer_list[consumer_index].usage);
+//		for (int i = 0; i <= consumer_index; i++) {
+//			// Включить LED
+//			HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_RESET);
+//			HAL_Delay(20);
+//			// Отключить LED
+//			HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_SET);
+//			HAL_Delay(80);
+//		}
+	}
 }
 
 //Одно долгое нажатие
 void OneLongPress(void) {
-  // Долгое нажатие → смена режима
-  current_mode = (current_mode + 1) % MODE_COUNT;
-  HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_SET);
-  HAL_Delay(100);
-  // Мигни количеством режимов:
-  // Отключить LED
-  HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_SET);
-  HAL_Delay(500);
-  for (int i = 0; i <= current_mode; i++) {
-    // Включить LED
-    HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_RESET);
-    HAL_Delay(200);
-    // Отключить LED
-    HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_SET);
-    HAL_Delay(400);
-  }
+	// Долгое нажатие → смена режима
+	current_mode = (current_mode + 1) % MODE_COUNT;
+	HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_SET);
+	HAL_Delay(100);
+	// Мигни количеством режимов:
+	// Отключить LED
+	HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_SET);
+	HAL_Delay(500);
+	for (int i = 0; i <= current_mode; i++) {
+		// Включить LED
+		HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_RESET);
+		HAL_Delay(200);
+		// Отключить LED
+		HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_SET);
+		HAL_Delay(400);
+	}
 }
 
 //Одно двойное нажатие
 void OneDoubleClick(void) {
 	if (current_mode == MODE_ENCODER) {
-    PressKeyOnce(HIDKEY_BACKSPACE, HIDKEY_MODIFIER_NONE); // press 'Backspace'
+		//PressMediaKeyOnce(HIDKEY_MEDIA_VOLUME_UP);
+		PressKeyOnce(HIDKEY_POWER, HIDKEY_MODIFIER_NONE);
 	} else if (current_mode == MODE_KEYBOARD) {
-    // Переключить раскладку (отправить Alt+Shift)
+		// Переключить раскладку (отправить Alt+Shift)
 		PressKeyOnce(HIDKEY_MODIFIER_LEFT_SHIFT, HIDKEY_MODIFIER_LEFT_ALT); // Left Shift, Left Alt
-  } else if (current_mode == MODE_CONSUMER) {
-    SendConsumerCommand(consumer_list[8].usage); // Menu
+	} else if (current_mode == MODE_CONSUMER) {
+//		SendConsumerCommand(consumer_list[8].usage);
+		PressMediaKeyOnce(HIDKEY_MEDIA_EJECT);
 	} else if (current_mode == MODE_MOUSE) {
-    MouseClick(0x02); // Right click
+		MouseClick(0x02); // Right click
 		axis_mouse_move = axis_mouse_move ? false : true;
-  }
+	}
 }
 
 //Обработчик нажатия
@@ -578,50 +602,48 @@ void HandleButton(void) {
 int main(void)
 {
 
-  /* USER CODE BEGIN 1 */
-
-  /* USER CODE END 1 */
-
-  /* MCU Configuration--------------------------------------------------------*/
-
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
-
-  /* USER CODE BEGIN Init */
-
-  /* USER CODE END Init */
-
-  /* Configure the system clock */
-  SystemClock_Config();
-
-  /* USER CODE BEGIN SysInit */
-
-  /* USER CODE END SysInit */
-
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  //MX_RTC_Init();
-  MX_TIM1_Init();
-  MX_USB_DEVICE_Init();
-  /* USER CODE BEGIN 2 */
-//	HAL_NVIC_SetPriority(TIM1_UP_IRQn, 0, 0);
+	/* USER CODE BEGIN 1 */
+	
+	/* USER CODE END 1 */
+	
+	/* MCU Configuration--------------------------------------------------------*/
+	
+	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+	HAL_Init();
+	
+	/* USER CODE BEGIN Init */
+	
+	/* USER CODE END Init */
+	
+	/* Configure the system clock */
+	SystemClock_Config();
+	
+	/* USER CODE BEGIN SysInit */
+	
+	/* USER CODE END SysInit */
+	
+	/* Initialize all configured peripherals */
+	MX_GPIO_Init();
+	//MX_RTC_Init();
+	MX_TIM1_Init();
+	MX_USB_DEVICE_Init();
+	/* USER CODE BEGIN 2 */
 	HAL_NVIC_EnableIRQ(TIM1_UP_IRQn);
-//	HAL_TIM_Base_Start_IT(&htim1);
 	HAL_TIM_Encoder_Start(&htim1, TIM_CHANNEL_ALL);
-  /* USER CODE END 2 */
-
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-  while (1)
-  {
+	/* USER CODE END 2 */
+	
+	/* Infinite loop */
+	/* USER CODE BEGIN WHILE */
+	while (1)
+	{
 		HandleEncoder();
-    HandleButton();
-    HAL_Delay(5); // небольшая задержка для стабильности
-    /* USER CODE END WHILE */
+		HandleButton();
+		HAL_Delay(5); // небольшая задержка для стабильности
+		/* USER CODE END WHILE */
 
-    /* USER CODE BEGIN 3 */
+		/* USER CODE BEGIN 3 */
 	}
-  /* USER CODE END 3 */
+	/* USER CODE END 3 */
 }
 
 /**

@@ -29,13 +29,13 @@ extern "C" {
 #include  "usbd_ioreq.h"
 
 #define KEYBOARD_CONTROL
-//#define MOUSE_CONTROL
-#define CONSUMER_CONTROL
+#define MOUSE_CONTROL
+//#define CONSUMER_CONTROL
 //#define CUSTOM_CONTROL
 
 #define HID_KEYBOARD_EP        0x81U
-//#define HID_MOUSE_EP           0x83U
-#define HID_CONSUMER_EP        0x82U
+#define HID_MOUSE_EP           0x82U
+#define HID_CONSUMER_EP        0x83U
 #define HID_CUSTOM_EPIN        0x84U
 #define HID_CUSTOM_EPOUT       0x01U
 
@@ -50,15 +50,21 @@ typedef struct {
 //Keyboard HID Report
 typedef struct
 {
-	uint8_t MODIFIER;
-	uint8_t RESERVED;
-	uint8_t KEYCODE1;
-	uint8_t KEYCODE2;
-	uint8_t KEYCODE3;
-	uint8_t KEYCODE4;
-	uint8_t KEYCODE5;
-	uint8_t KEYCODE6;
+	uint8_t id;
+	uint8_t modifiers;
+	uint8_t key1;
+	uint8_t key2;
+	uint8_t key3;
+	uint8_t key4;
+	uint8_t key5;
 } keyboardHID;
+
+// Media HID Report
+typedef struct
+{
+    uint8_t id;
+    uint8_t keys;
+} mediaHID;
 
 //Consumer HID Report
 typedef struct {
@@ -71,6 +77,7 @@ typedef struct {
 #define HID_KEYBOARD_EP_SIZE   (sizeof(keyboardHID))
 #define HID_MOUSE_EP_SIZE      (sizeof(mouseHID))
 #define HID_CONSUMER_EP_SIZE   (sizeof(сonsumerHID))
+#define HID_MEDIA_EP_SIZE      (sizeof(mediaHID))
 #define HID_CUSTOM_EP_SIZE     0x10U
 
 #define USB_HID_CONFIG_DESC_SIZ       9U + 25U + 25U //+ 25U //+ 25U // (9+9+7=25)
