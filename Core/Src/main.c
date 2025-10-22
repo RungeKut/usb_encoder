@@ -72,20 +72,6 @@ typedef enum {
 
 device_mode_t current_mode = MODE_ENCODER;
 
-// Состояние кнопки энкодера
-bool button_pressed = false;
-uint32_t button_press_time = 0;
-
-// Счётчики энкодера
-int32_t prevCounter = 0;
-int32_t currCounter = 0;
-int32_t delta = 0;
-
-// Для двойного нажатия
-#define DOUBLE_CLICK_TIMEOUT  200  // мс
-static uint32_t last_click_time = 0;
-static bool waiting_for_double = false;
-
 #define CONSUMER_COUNT (sizeof(consumer_list)/sizeof(consumer_list[0]))
 uint8_t consumer_index = 0;
 
@@ -413,6 +399,11 @@ enum {
     HID_MEDIA_Forward     = 0x0196, // Browser forward
     HID_MEDIA_Refresh     = 0x0197,
     HID_MEDIA_Bookmarks   = 0x0198,
+	
+	// === Управление питанием ===
+    HID_CUSTOM_SystemPowerDown = 0x81,
+    HID_CUSTOM_SystemSleep     = 0x82,
+    HID_CUSTOM_SystemWakeUp    = 0x83,
 } KEYBOARD_KEY_LIST;
 
 // Список кнопок клавиатуры
@@ -568,6 +559,40 @@ void SendRemoteCommand() {
 }
 
 /* ========================================================================== */
+/*               --- Функции отправки для System Control ---                  */
+/* ========================================================================== */
+
+void SendCustomReport(customHID *custom) {
+	HAL_Delay(100);
+    USBD_HID_SendReport_EP(&hUsbDeviceFS, (uint8_t *)custom, sizeof(customHID), HID_CUSTOM_EP);
+}
+
+void SendCustomCommand(uint16_t usage) {
+	customHID report = {0};
+	report.lsb = LOBYTE(usage);
+//	report.msb = HIBYTE(usage);
+    SendCustomReport(&report);
+    // Обязательно отпустить!
+    report.lsb = 0;
+//	report.msb = 0;
+    SendCustomReport(&report);
+}
+
+// Состояние кнопки энкодера
+static bool button_pressed = false;
+static uint32_t button_press_time = 0;
+
+// Счётчики энкодера
+static int32_t prevCounter = 0;
+static int32_t currCounter = 0;
+static int32_t delta = 0;
+
+// Для двойного нажатия
+#define DOUBLE_CLICK_TIMEOUT  200  // мс
+static uint32_t last_click_time = 0;
+static bool waiting_for_double = false;
+
+/* ========================================================================== */
 /*                     --- Функция обработки энкодера ---                     */
 /* ========================================================================== */
 void HandleEncoder(void) {
@@ -641,6 +666,8 @@ void HandleEncoder(void) {
 /* ========================================================================== */
 /*                 --- Функция обработки кнопки энкодера ---                  */
 /* ========================================================================== */
+bool powerFlag = false;
+
 //Одно короткое нажатие
 void OneShortPress(void) {
 	if (current_mode == MODE_ENCODER) {
@@ -650,17 +677,25 @@ void OneShortPress(void) {
 	} else if (current_mode == MODE_MOUSE) {
 		MouseClick(0x01); // Left click
 	} else if (current_mode == MODE_CONSUMER) {
-		SendConsumerCommand(KEY_MEDIA_SLEEP);
-//		PressMediaKeyOnce(0x0030);
-//		SendConsumerCommand(consumer_list[consumer_index].usage);
-//		for (int i = 0; i <= consumer_index; i++) {
-//			// Включить LED
-//			HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_RESET);
-//			HAL_Delay(20);
-//			// Отключить LED
-//			HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_SET);
-//			HAL_Delay(80);
-//		}
+		if (powerFlag) {
+			SendCustomCommand(HID_CUSTOM_SystemWakeUp);
+			powerFlag = true;
+		} else {
+			SendCustomCommand(HID_CUSTOM_SystemPowerDown);
+			powerFlag = false;
+		}
+		// Мигни количеством режимов:
+		// Отключить LED
+		HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_SET);
+		HAL_Delay(500);
+		for (int i = 0; i <= (1 + powerFlag); i++) {
+			// Включить LED
+			HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_RESET);
+			HAL_Delay(200);
+			// Отключить LED
+			HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_SET);
+			HAL_Delay(400);
+		}
 	}
 }
 
@@ -702,43 +737,58 @@ void OneDoubleClick(void) {
 }
 
 //Обработчик нажатия
-void HandleButton(void) {
-  static bool button_pressed = false;
-  static uint32_t press_start_time = 0;
-  if (HAL_GPIO_ReadPin(ENCODER_KEY_GPIO_Port, ENCODER_KEY_Pin) == GPIO_PIN_RESET) {
-    if (!button_pressed) {
-      button_pressed = true;
-      press_start_time = HAL_GetTick();
-    }
-  } else {
-    if (button_pressed) {
-      uint32_t press_duration = HAL_GetTick() - press_start_time;
-      button_pressed = false;
-					
-      if (press_duration > 1000) { // Долгое нажатие
-        OneLongPress();
-				
-      } else if (press_duration < 300) { // Короткое нажатие
-        //Проверяем, не двойное ли
-        if (waiting_for_double) {
-          // Это второе нажатие → двойной клик!
-          waiting_for_double = false;
-          OneDoubleClick();
-        } else {
-          // Первое нажатие — ждём второе
-          waiting_for_double = true;
-          last_click_time = HAL_GetTick();
-        }
-      }
-    }
-  }
+static uint32_t press_start_time = 0;
+static bool long_press_executed = false;
 
-  // Проверка таймаута для двойного нажатия
-  if (waiting_for_double && (HAL_GetTick() - last_click_time > DOUBLE_CLICK_TIMEOUT)) {
-    waiting_for_double = false;
-    // Обрабатываем как одиночное нажатие
-    OneShortPress();
-  }
+void HandleButton(void)
+{
+    uint32_t now = HAL_GetTick();
+    bool is_pressed = (HAL_GPIO_ReadPin(ENCODER_KEY_GPIO_Port, ENCODER_KEY_Pin) == GPIO_PIN_RESET);
+
+    if (is_pressed) {
+        // Кнопка нажата
+        if (!button_pressed) {
+            // Только что нажали
+            button_pressed = true;
+            press_start_time = now;
+            long_press_executed = false;
+            // Сбрасываем двойной клик (новое нажатие прерывает ожидание)
+            waiting_for_double = false;
+        } else {
+            // Уже нажата — проверяем, не пора ли выполнить долгое нажатие?
+            if (!long_press_executed && (now - press_start_time >= 1000)) {
+                OneLongPress();               // 🔥 Выполняем СРАЗУ!
+                long_press_executed = true;   // чтобы не вызывать повторно
+                // Опционально: отключить двойной клик после долгого удержания
+            }
+        }
+    } else {
+        // Кнопка отпущена
+        if (button_pressed) {
+            uint32_t press_duration = now - press_start_time;
+            button_pressed = false;
+
+            if (!long_press_executed) {
+                // Значит, это было короткое нажатие (или двойное)
+                if (press_duration < 300) {
+                    if (waiting_for_double) {
+                        waiting_for_double = false;
+                        OneDoubleClick();
+                    } else {
+                        waiting_for_double = true;
+                        last_click_time = now;
+                    }
+                }
+                // Игнорируем нажатия 300–1000 мс («мёртвая зона»)
+            }
+        }
+    }
+
+    // Проверка таймаута двойного клика
+    if (waiting_for_double && (now - last_click_time > DOUBLE_CLICK_TIMEOUT)) {
+        waiting_for_double = false;
+        OneShortPress();
+    }
 }
 /* USER CODE END 0 */
 
@@ -785,7 +835,7 @@ int main(void)
 	{
 		HandleEncoder();
 		HandleButton();
-		HAL_Delay(5); // небольшая задержка для стабильности
+		//HAL_Delay(5); // небольшая задержка для стабильности
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */
