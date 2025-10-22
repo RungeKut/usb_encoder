@@ -515,19 +515,18 @@ void MouseClick(uint8_t button) {
 /* ========================================================================== */
 
 void SendConsumerReport(сonsumerHID *сonsumer) {
-	HAL_Delay(10);
+	HAL_Delay(100);
     USBD_HID_SendReport_EP(&hUsbDeviceFS, (uint8_t *)сonsumer, sizeof(сonsumerHID), HID_CONSUMER_EP);
 }
 
 void SendConsumerCommand(uint16_t usage) {
 	сonsumerHID report = {0};
-	report.id = 2;
-	report.keys1 = LOBYTE(usage);
-	report.keys2 = HIBYTE(usage);
+	report.lsb = LOBYTE(usage);
+	report.msb = HIBYTE(usage);
     SendConsumerReport(&report);
     // Обязательно отпустить!
-    report.keys1 = 0;
-	report.keys2 = 0;
+    report.lsb = 0;
+	report.msb = 0;
     SendConsumerReport(&report);
 }
 
@@ -651,7 +650,8 @@ void OneShortPress(void) {
 	} else if (current_mode == MODE_MOUSE) {
 		MouseClick(0x01); // Left click
 	} else if (current_mode == MODE_CONSUMER) {
-		PressMediaKeyOnce(0x0030);
+		SendConsumerCommand(KEY_MEDIA_SLEEP);
+//		PressMediaKeyOnce(0x0030);
 //		SendConsumerCommand(consumer_list[consumer_index].usage);
 //		for (int i = 0; i <= consumer_index; i++) {
 //			// Включить LED

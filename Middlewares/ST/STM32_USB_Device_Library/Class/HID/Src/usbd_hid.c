@@ -37,9 +37,9 @@ USBD_ClassTypeDef  USBD_HID =
   NULL, /*SOF */
   NULL,
   NULL,
+  NULL,
   USBD_HID_GetCfgDesc,
-  USBD_HID_GetCfgDesc,
-  USBD_HID_GetCfgDesc,
+  NULL,
   USBD_HID_GetDeviceQualifierDesc,
 };
 
@@ -205,10 +205,17 @@ __ALIGN_BEGIN static uint8_t HID_REMOTE_ReportDesc[] __ALIGN_END =
 
 __ALIGN_BEGIN static uint8_t HID_CONSUMER_ReportDesc[] __ALIGN_END =
 {
-	0x09, 0x02, 0x3B, 0x00, 0x02, 0x01, 0x00, 0xA0, 0x31, 0x09, 0x04, 0x00, 0x00, 0x01, 0x03, 0x01,
-	0x01, 0x00, 0x09, 0x21, 0x10, 0x01, 0x00, 0x01, 0x22, 0x36, 0x00, 0x07, 0x05, 0x81, 0x03, 0x08,
-	0x00, 0x0A, 0x09, 0x04, 0x01, 0x00, 0x01, 0x03, 0x00, 0x00, 0x00, 0x09, 0x21, 0x10, 0x01, 0x00,
-	0x01, 0x22
+  0x05, 0x0C,        // Usage Page (Consumer Devices)
+  0x09, 0x01,        // Usage (Consumer Control)
+  0xA1, 0x01,        // Collection (Application)
+  0x15, 0x00,        // Logical Minimum (0)
+  0x26, 0xFF, 0x03,  // Logical Maximum (1023) — позволяет использовать 16-битные коды
+  0x19, 0x00,        // Usage Minimum (0)
+  0x2A, 0xFF, 0x03,  // Usage Maximum (1023)
+  0x75, 0x10,        // Report Size (16 bits)
+  0x95, 0x01,        // Report Count (1)
+  0x81, 0x00,        // Input (Data, Array, Absolute)
+  0xC0               // End Collection
 };
 
 __ALIGN_BEGIN static uint8_t HID_CUSTOM_ReportDesc[] __ALIGN_END =
@@ -442,13 +449,46 @@ __ALIGN_BEGIN static uint8_t USBD_HID_DeviceQualifierDesc[USB_LEN_DEV_QUALIFIER_
   */
 static uint8_t  USBD_HID_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 {
-	//USBD_LL_OpenEP(pdev, HID_MOUSE_EP,    USBD_EP_TYPE_INTR, HID_MOUSE_EP_SIZE);
+// Открываем endpoint'ы только для включённых интерфейсов
+#if HID_INTERFACE_KEYBOARD
 	USBD_LL_OpenEP(pdev, HID_KEYBOARD_EP, USBD_EP_TYPE_INTR, HID_KEYBOARD_EP_SIZE);
-	USBD_LL_OpenEP(pdev, HID_CONSUMER_EP, USBD_EP_TYPE_INTR, HID_CONSUMER_EP_SIZE);
+#endif
 
-	//pdev->ep_in[HID_MOUSE_EP & 0xFU].is_used = 1U;
+#if HID_INTERFACE_MOUSE
+	USBD_LL_OpenEP(pdev, HID_MOUSE_EP, USBD_EP_TYPE_INTR, HID_MOUSE_EP_SIZE);
+#endif
+
+#if HID_INTERFACE_CONSUMER
+	USBD_LL_OpenEP(pdev, HID_CONSUMER_EP, USBD_EP_TYPE_INTR, HID_CONSUMER_EP_SIZE);
+#endif
+
+#if HID_INTERFACE_REMOTE
+	USBD_LL_OpenEP(pdev, HID_REMOTE_EP, USBD_EP_TYPE_INTR, HID_REMOTE_EP_SIZE);
+#endif
+
+#if HID_INTERFACE_CUSTOM
+	USBD_LL_OpenEP(pdev, HID_CUSTOM_EP, USBD_EP_TYPE_INTR, HID_CUSTOM_EP_SIZE);
+#endif
+
+#if HID_INTERFACE_KEYBOARD
 	pdev->ep_in[HID_KEYBOARD_EP & 0xFU].is_used = 1U;
+#endif
+
+#if HID_INTERFACE_MOUSE
+	pdev->ep_in[HID_MOUSE_EP & 0xFU].is_used = 1U;
+#endif
+
+#if HID_INTERFACE_CONSUMER
 	pdev->ep_in[HID_CONSUMER_EP & 0xFU].is_used = 1U;
+#endif
+
+#if HID_INTERFACE_REMOTE
+	pdev->ep_in[HID_REMOTE_EP & 0xFU].is_used = 1U;
+#endif
+
+#if HID_INTERFACE_CUSTOM
+	pdev->ep_in[HID_CUSTOM_EP & 0xFU].is_used = 1U;
+#endif
 	
 	pdev->pClassData = USBD_malloc(sizeof(USBD_HID_HandleTypeDef));
 	if (pdev->pClassData == NULL)
@@ -465,23 +505,55 @@ static uint8_t  USBD_HID_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
   * @param  cfgidx: Configuration index
   * @retval status
   */
-static uint8_t  USBD_HID_DeInit(USBD_HandleTypeDef *pdev,
-                                uint8_t cfgidx)
+static uint8_t  USBD_HID_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 {
-	//USBD_LL_CloseEP(pdev, HID_MOUSE_EP);
+	  // Закрываем endpoint'ы только для включённых интерфейсов
+#if HID_INTERFACE_KEYBOARD
 	USBD_LL_CloseEP(pdev, HID_KEYBOARD_EP);
+#endif
+
+#if HID_INTERFACE_MOUSE
+	USBD_LL_CloseEP(pdev, HID_MOUSE_EP);
+#endif
+
+#if HID_INTERFACE_CONSUMER
 	USBD_LL_CloseEP(pdev, HID_CONSUMER_EP);
+#endif
 
-	//pdev->ep_in[HID_MOUSE_EP & 0xFU].is_used = 0U;
+#if HID_INTERFACE_REMOTE
+	USBD_LL_CloseEP(pdev, HID_REMOTE_EP);
+#endif
+
+#if HID_INTERFACE_CUSTOM
+	USBD_LL_CloseEP(pdev, HID_CUSTOM_EP);
+#endif
+
+#if HID_INTERFACE_KEYBOARD
 	pdev->ep_in[HID_KEYBOARD_EP & 0xFU].is_used = 0U;
-	pdev->ep_in[HID_CONSUMER_EP & 0xFU].is_used = 0U;
+#endif
 
-  if (pdev->pClassData != NULL)
-  {
-    USBD_free(pdev->pClassData);
-    pdev->pClassData = NULL;
-  }
-  return USBD_OK;
+#if HID_INTERFACE_MOUSE
+	pdev->ep_in[HID_MOUSE_EP & 0xFU].is_used = 0U;
+#endif
+
+#if HID_INTERFACE_CONSUMER
+	pdev->ep_in[HID_CONSUMER_EP & 0xFU].is_used = 0U;
+#endif
+
+#if HID_INTERFACE_REMOTE
+	pdev->ep_in[HID_REMOTE_EP & 0xFU].is_used = 0U;
+#endif
+
+#if HID_INTERFACE_CUSTOM
+	pdev->ep_in[HID_CUSTOM_EP & 0xFU].is_used = 0U;
+#endif
+
+	if (pdev->pClassData != NULL)
+	{
+		USBD_free(pdev->pClassData);
+		pdev->pClassData = NULL;
+	}
+	return USBD_OK;
 }
 
 /**
@@ -491,8 +563,7 @@ static uint8_t  USBD_HID_DeInit(USBD_HandleTypeDef *pdev,
   * @param  req: usb requests
   * @retval status
   */
-static uint8_t  USBD_HID_Setup(USBD_HandleTypeDef *pdev,
-                               USBD_SetupReqTypedef *req)
+static uint8_t USBD_HID_Setup(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
 {
   USBD_HID_HandleTypeDef *hhid = (USBD_HID_HandleTypeDef *)pdev->pClassData;
   uint16_t len = 0U;
@@ -539,45 +610,129 @@ static uint8_t  USBD_HID_Setup(USBD_HandleTypeDef *pdev,
 
         case USB_REQ_GET_DESCRIPTOR:
         {
+          uint8_t desc_type = (uint8_t)(req->wValue >> 8);
           uint8_t interface = (uint8_t)(req->wIndex & 0xFF);
-          if (req->wValue >> 8 == HID_REPORT_DESC)
+
+          if (desc_type == HID_REPORT_DESC)
           {
-            if (interface == 0)
+            pbuf = NULL;
+            len = 0;
+#if HID_INTERFACE_KEYBOARD
+            if (interface == INTERFACE_KEYBOARD_NUMBER)
             {
-              len = MIN(KEYBOARD_REPORT_DESC_SIZE, req->wLength);
               pbuf = HID_KEYBOARD_ReportDesc;
+              len = KEYBOARD_REPORT_DESC_SIZE;
             }
-            else if (interface == 1)
+            else
+#endif
+#if HID_INTERFACE_MOUSE
+            if (interface == INTERFACE_MOUSE_NUMBER)
             {
-              len = MIN(MOUSE_REPORT_DESC_SIZE, req->wLength);
               pbuf = HID_MOUSE_ReportDesc;
+              len = MOUSE_REPORT_DESC_SIZE;
             }
-            else if (interface == 2)
+            else
+#endif
+#if HID_INTERFACE_CONSUMER
+            if (interface == INTERFACE_CONSUMER_NUMBER)
             {
-              len = MIN(CONSUMER_REPORT_DESC_SIZE, req->wLength);
               pbuf = HID_CONSUMER_ReportDesc;
+              len = CONSUMER_REPORT_DESC_SIZE;
+            }
+            else
+#endif
+#if HID_INTERFACE_REMOTE
+            if (interface == INTERFACE_REMOTE_NUMBER)
+            {
+              pbuf = HID_REMOTE_ReportDesc;
+              len = REMOTE_REPORT_DESC_SIZE;
+            }
+            else
+#endif
+#if HID_INTERFACE_CUSTOM
+            if (interface == INTERFACE_CUSTOM_NUMBER)
+            {
+              pbuf = HID_CUSTOM_ReportDesc;
+              len = CUSTOM_REPORT_DESC_SIZE;
+            }
+            else
+#endif
+            {
+              // Ни один интерфейс не совпал
+              pbuf = NULL;
+              len = 0;
+            }
+
+            if (pbuf != NULL && len > 0)
+            {
+              len = MIN(len, req->wLength);
+              USBD_CtlSendData(pdev, pbuf, len);
+            }
+            else
+            {
+              // Неизвестный интерфейс или дескриптор недоступен
+              USBD_CtlError(pdev, req);
+              ret = USBD_FAIL;
+            }
+          }
+          else if (desc_type == HID_DESCRIPTOR_TYPE)
+          {
+            // Windows иногда запрашивает HID-дескриптор отдельно.
+            // Найдём нужный HID-дескриптор по интерфейсу.
+            static uint8_t hid_desc[9];
+            uint16_t report_len = 0;
+
+#if HID_INTERFACE_KEYBOARD
+            if (interface == INTERFACE_KEYBOARD_NUMBER) report_len = KEYBOARD_REPORT_DESC_SIZE;
+            else
+#endif
+#if HID_INTERFACE_MOUSE
+            if (interface == INTERFACE_MOUSE_NUMBER) report_len = MOUSE_REPORT_DESC_SIZE;
+            else
+#endif
+#if HID_INTERFACE_CONSUMER
+            if (interface == INTERFACE_CONSUMER_NUMBER) report_len = CONSUMER_REPORT_DESC_SIZE;
+            else
+#endif
+#if HID_INTERFACE_REMOTE
+            if (interface == INTERFACE_REMOTE_NUMBER) report_len = REMOTE_REPORT_DESC_SIZE;
+            else
+#endif
+#if HID_INTERFACE_CUSTOM
+            if (interface == INTERFACE_CUSTOM_NUMBER) report_len = CUSTOM_REPORT_DESC_SIZE;
+            else
+#endif
+            {
+              report_len = 0;
+            }
+
+            if (report_len > 0)
+            {
+              // Собираем HID-дескриптор (9 байт)
+              hid_desc[0] = 0x09;               // bLength
+              hid_desc[1] = HID_DESCRIPTOR_TYPE; // bDescriptorType
+              hid_desc[2] = 0x10;               // bcdHID LSB
+              hid_desc[3] = 0x01;               // bcdHID MSB
+              hid_desc[4] = 0x00;               // bCountryCode
+              hid_desc[5] = 0x01;               // bNumDescriptors
+              hid_desc[6] = 0x22;               // bDescriptorType (Report)
+              hid_desc[7] = LOBYTE(report_len); // wDescriptorLength LSB
+              hid_desc[8] = HIBYTE(report_len); // wDescriptorLength MSB
+
+              len = MIN(9, req->wLength);
+              USBD_CtlSendData(pdev, hid_desc, len);
             }
             else
             {
               USBD_CtlError(pdev, req);
               ret = USBD_FAIL;
-              break;
             }
-          }
-          else if (req->wValue >> 8 == HID_DESCRIPTOR_TYPE)
-          {
-            // Можно вернуть общий HID-дескриптор, но проще игнорировать
-            USBD_CtlError(pdev, req);
-            ret = USBD_FAIL;
-            break;
           }
           else
           {
             USBD_CtlError(pdev, req);
             ret = USBD_FAIL;
-            break;
           }
-          USBD_CtlSendData(pdev, pbuf, len);
           break;
         }
 

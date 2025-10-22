@@ -29,8 +29,8 @@ extern "C" {
 #include  "usbd_ioreq.h"
 
 #define KEYBOARD_CONTROL
-#define MOUSE_CONTROL
-//#define CONSUMER_CONTROL
+//#define MOUSE_CONTROL
+#define CONSUMER_CONTROL
 //#define REMOTE_CONTROL
 //#define CUSTOM_CONTROL
 
@@ -90,7 +90,7 @@ typedef struct
 	uint8_t id;
 	uint8_t modifier;
 	uint8_t reserved;
-  uint8_t keycode[6];
+	uint8_t keycode[6];
 } keyboardHID;
 
 
@@ -117,9 +117,8 @@ typedef struct
 
 //Consumer HID Report
 typedef struct {
-	uint8_t id;
-    uint8_t keys1;
-	uint8_t keys2;
+	uint8_t lsb;
+    uint8_t msb;
 } сonsumerHID;
 
 #define HID_KEYBOARD_EP_SIZE   (sizeof(keyboardHID))

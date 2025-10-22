@@ -62,10 +62,10 @@
   * @{
   */
 
-#define USBD_VID     0//1155
+#define USBD_VID     0x1209//1155
 #define USBD_LANGID_STRING     0//1033
 #define USBD_MANUFACTURER_STRING     "PrimaElectronics"
-#define USBD_PID_FS     0//22315
+#define USBD_PID_FS     0x0001//22315
 #define USBD_PRODUCT_STRING_FS     "USB Encoder"
 #define USBD_CONFIGURATION_STRING_FS     "HID Config"
 #define USBD_INTERFACE_STRING_FS     "HID Interface"
