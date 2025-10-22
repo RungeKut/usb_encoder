@@ -679,16 +679,16 @@ void OneShortPress(void) {
 	} else if (current_mode == MODE_CONSUMER) {
 		if (powerFlag) {
 			SendCustomCommand(HID_CUSTOM_SystemWakeUp);
-			powerFlag = true;
+			powerFlag = false;
 		} else {
 			SendCustomCommand(HID_CUSTOM_SystemPowerDown);
-			powerFlag = false;
+			powerFlag = true;
 		}
 		// Мигни количеством режимов:
 		// Отключить LED
 		HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_SET);
 		HAL_Delay(500);
-		for (int i = 0; i <= (1 + powerFlag); i++) {
+		for (int i = 0; i <= (uint8_t)powerFlag; i++) {
 			// Включить LED
 			HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_RESET);
 			HAL_Delay(200);
