@@ -70,12 +70,11 @@ extern "C" {
 #define  HID_MEDIA_REPORT  2
 #define HID_LED_SUPPORT 0
 
-#define HID_KEYBOARD_EP        0x81U
-#define HID_MOUSE_EP           0x82U
-#define HID_CONSUMER_EP        0x82U
-#define HID_REMOTE_EPIN        0x84U
-#define HID_CUSTOM_EPIN        0x85U
-#define HID_CUSTOM_EPOUT       0x01U
+#define HID_KEYBOARD_EP        (0x80U + HID_INTERFACE_KEYBOARD)
+#define HID_MOUSE_EP           (HID_KEYBOARD_EP + HID_INTERFACE_MOUSE)
+#define HID_CONSUMER_EP        (HID_MOUSE_EP + HID_INTERFACE_CONSUMER)
+#define HID_REMOTE_EP          (HID_CONSUMER_EP + HID_INTERFACE_REMOTE)
+#define HID_CUSTOM_EP          (HID_REMOTE_EP + HID_INTERFACE_CUSTOM)
 
 //Mouse HID Report
 typedef struct {
@@ -105,8 +104,15 @@ typedef struct
 // Remote HID Report
 typedef struct
 {
-    uint8_t id;
-    uint8_t keys;
+    // Байт 0
+    uint8_t numeric_keypad : 4;   // 1–10 или 0 — если не нажата
+    uint8_t channel        : 2;   // -1=0b11, 0=0b00, +1=0b01 (см. ниже)
+    uint8_t volume         : 2;   // -1=0b11, 0=0b00, +1=0b01
+
+    // Байт 1
+    uint8_t special_key    : 4;   // 1–7 или 0 — если не нажата
+    uint8_t selection      : 2;   // 1–3 или 0
+    uint8_t padding        : 2;   // всегда 0b10 (LOGICAL_MINIMUM = 2)
 } remoteHID;
 
 //Consumer HID Report

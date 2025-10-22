@@ -229,10 +229,17 @@ __ALIGN_BEGIN static uint8_t HID_CUSTOM_ReportDesc[] __ALIGN_END =
 };
 
 /* Размеры дескрипторов ------------------------------------------------------*/
-#define KEYBOARD_REPORT_DESC_SIZE  (sizeof(HID_KEYBOARD_ReportDesc)) //62
+#define KEYBOARD_REPORT_DESC_SIZE  (sizeof(HID_KEYBOARD_ReportDesc))
 #define MOUSE_REPORT_DESC_SIZE     (sizeof(HID_MOUSE_ReportDesc))
-#define CONSUMER_REPORT_DESC_SIZE  (sizeof(HID_CONSUMER_ReportDesc)) //101
+#define CONSUMER_REPORT_DESC_SIZE  (sizeof(HID_CONSUMER_ReportDesc))
+#define REMOTE_REPORT_DESC_SIZE    (sizeof(HID_REMOTE_ReportDesc))
 #define CUSTOM_REPORT_DESC_SIZE    (sizeof(HID_CUSTOM_ReportDesc))
+
+#define INTERFACE_KEYBOARD_NUMBER 0
+#define INTERFACE_MOUSE_NUMBER    (HID_INTERFACE_KEYBOARD)
+#define INTERFACE_CONSUMER_NUMBER (HID_INTERFACE_KEYBOARD + HID_INTERFACE_MOUSE)
+#define INTERFACE_REMOTE_NUMBER   (HID_INTERFACE_KEYBOARD + HID_INTERFACE_MOUSE + HID_INTERFACE_CONSUMER)
+#define INTERFACE_CUSTOM_NUMBER   (HID_INTERFACE_KEYBOARD + HID_INTERFACE_MOUSE + HID_INTERFACE_CONSUMER + HID_INTERFACE_REMOTE)
 
 /* Configuration Descriptor --------------------------------------------------*/
 // Дескриптор конфигурации (описывает возможности устройства)
@@ -254,7 +261,7 @@ __ALIGN_BEGIN static uint8_t USBD_HID_CfgDesc[USB_HID_CONFIG_DESC_SIZ] __ALIGN_E
 		// Interface Descriptor (9 byte)
 		/*  1 byte*/ 0x09,	//bLength: Interface Descriptor size
 		/*  2 byte*/ USB_DESC_TYPE_INTERFACE, //bDescriptorType: Interface descriptor type
-		/*  3 byte*/ 0x00,	//bInterfaceNumber: Number of Interface
+		/*  3 byte*/ INTERFACE_KEYBOARD_NUMBER,	//bInterfaceNumber: Number of Interface
 		/*  4 byte*/ 0x00,	//bAlternateSetting: Alternate setting
 		/*  5 byte*/ 0x01,	//bNumEndpoints
 		/*  6 byte*/ 0x03,	//bInterfaceClass: HID
@@ -286,7 +293,7 @@ __ALIGN_BEGIN static uint8_t USBD_HID_CfgDesc[USB_HID_CONFIG_DESC_SIZ] __ALIGN_E
 		// Interface Descriptor (9 byte)
 		/*  1 byte*/ 0x09,	//bLength: Interface Descriptor size
 		/*  2 byte*/ USB_DESC_TYPE_INTERFACE, //bDescriptorType: Interface descriptor type
-		/*  3 byte*/ 0x01,	//bInterfaceNumber: Number of Interface
+		/*  3 byte*/ INTERFACE_MOUSE_NUMBER,	//bInterfaceNumber: Number of Interface
 		/*  4 byte*/ 0x00,	//bAlternateSetting: Alternate setting
 		/*  5 byte*/ 0x01,	//bNumEndpoints
 		/*  6 byte*/ 0x03,	//bInterfaceClass: HID
@@ -318,7 +325,7 @@ __ALIGN_BEGIN static uint8_t USBD_HID_CfgDesc[USB_HID_CONFIG_DESC_SIZ] __ALIGN_E
 		// Interface Descriptor (9 byte)
 		/*  1 byte*/ 0x09,	//bLength: Interface Descriptor size
 		/*  2 byte*/ USB_DESC_TYPE_INTERFACE, //bDescriptorType: Interface descriptor type
-		/*  3 byte*/ 0x01,	//bInterfaceNumber: Number of Interface
+		/*  3 byte*/ INTERFACE_CONSUMER_NUMBER,	//bInterfaceNumber: Number of Interface
 		/*  4 byte*/ 0x00,	//bAlternateSetting: Alternate setting
 		/*  5 byte*/ 0x01,	//bNumEndpoints
 		/*  6 byte*/ 0x03,	//bInterfaceClass: HID
@@ -343,14 +350,47 @@ __ALIGN_BEGIN static uint8_t USBD_HID_CfgDesc[USB_HID_CONFIG_DESC_SIZ] __ALIGN_E
 				/*5-6 byte*/ LOBYTE(HID_CONSUMER_EP_SIZE), HIBYTE(HID_CONSUMER_EP_SIZE),	//wMaxPacketSize
 				/*  7 byte*/ HID_FS_BINTERVAL,	//bInterval: Polling Interval (10 ms)
 	#endif
-
+	
 	#if HID_INTERFACE_REMOTE
 	// ============ INTERFACE 3: CUSTOM CONTROL ============
 
 		// Interface Descriptor (9 byte)
 		/*  1 byte*/ 0x09,	//bLength: Interface Descriptor size
 		/*  2 byte*/ USB_DESC_TYPE_INTERFACE, //bDescriptorType: Interface descriptor type
-		/*  3 byte*/ 0x03,	//bInterfaceNumber: Number of Interface
+		/*  3 byte*/ INTERFACE_REMOTE_NUMBER,	//bInterfaceNumber: Number of Interface
+		/*  4 byte*/ 0x00,	//bAlternateSetting: Alternate setting
+		/*  5 byte*/ 0x02,	//bNumEndpoints
+		/*  6 byte*/ 0x03,	//bInterfaceClass: HID
+		/*  7 byte*/ 0x00,	//bInterfaceSubClass : 1=BOOT, 0=no boot
+		/*  8 byte*/ 0x00,	//nInterfaceProtocol : 0=none, 1=keyboard, 2=mouse
+		/*  9 byte*/ 0x00,	//iInterface: Index of string descriptor
+
+			// HID Descriptor (9 byte)
+			/*  1 byte*/ 0x09,	//bLength: HID Descriptor size
+			/*  2 byte*/ HID_DESCRIPTOR_TYPE,	//bDescriptorType: HID
+			/*3-4 byte*/ 0x10, 0x01,	//bcdHID: HID Class Spec release number
+			/*  5 byte*/ 0x00,	//bCountryCode: Hardware target country
+			/*  6 byte*/ 0x01,	//bNumDescriptors: Number of HID class descriptors to follow
+			/*  7 byte*/ 0x22,	//bDescriptorType
+			/*8-9 byte*/ LOBYTE(REMOTE_REPORT_DESC_SIZE), HIBYTE(REMOTE_REPORT_DESC_SIZE), // wItemLength: Total length of Report descriptor
+
+				// Endpoint Descriptor (7 byte)
+				/*  1 byte*/ 0x07,	//bLength: Endpoint Descriptor size
+				/*  2 byte*/ USB_DESC_TYPE_ENDPOINT,	//bDescriptorType: ENDPOINT
+				/*  3 byte*/ HID_REMOTE_EP,	//bEndpointAddress: Endpoint Address (IN)
+				/*  4 byte*/ 0x03,	//bmAttributes: Interrupt endpoint
+				/*  5 byte*/ HID_REMOTE_EP_SIZE,	//wMaxPacketSize
+				/*  6 byte*/ 0x00,
+				/*  7 byte*/ HID_FS_BINTERVAL,	//bInterval: Polling Interval (10 ms)
+	#endif
+
+	#if HID_INTERFACE_CUSTOM
+	// ============ INTERFACE 4: CUSTOM CONTROL ============
+
+		// Interface Descriptor (9 byte)
+		/*  1 byte*/ 0x09,	//bLength: Interface Descriptor size
+		/*  2 byte*/ USB_DESC_TYPE_INTERFACE, //bDescriptorType: Interface descriptor type
+		/*  3 byte*/ INTERFACE_CUSTOM_NUMBER,	//bInterfaceNumber: Number of Interface
 		/*  4 byte*/ 0x00,	//bAlternateSetting: Alternate setting
 		/*  5 byte*/ 0x02,	//bNumEndpoints
 		/*  6 byte*/ 0x03,	//bInterfaceClass: HID
@@ -370,7 +410,7 @@ __ALIGN_BEGIN static uint8_t USBD_HID_CfgDesc[USB_HID_CONFIG_DESC_SIZ] __ALIGN_E
 				// Endpoint Descriptor (7 byte)
 				/*  1 byte*/ 0x07,	//bLength: Endpoint Descriptor size
 				/*  2 byte*/ USB_DESC_TYPE_ENDPOINT,	//bDescriptorType: ENDPOINT
-				/*  3 byte*/ HID_CUSTOM_EPIN,	//bEndpointAddress: Endpoint Address (IN)
+				/*  3 byte*/ HID_CUSTOM_EP,	//bEndpointAddress: Endpoint Address (IN)
 				/*  4 byte*/ 0x03,	//bmAttributes: Interrupt endpoint
 				/*  5 byte*/ HID_CUSTOM_EP_SIZE,	//wMaxPacketSize
 				/*  6 byte*/ 0x00,

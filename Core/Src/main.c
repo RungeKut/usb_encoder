@@ -532,6 +532,43 @@ void SendConsumerCommand(uint16_t usage) {
 }
 
 /* ========================================================================== */
+/*       --- Функции отправки для пульта дистанционного управления ---        */
+/* ========================================================================== */
+
+void SendRemoteReport(remoteHID *remote) {
+	HAL_Delay(10);
+    USBD_HID_SendReport_EP(&hUsbDeviceFS, (uint8_t *)remote, sizeof(remoteHID), HID_REMOTE_EP);
+}
+
+void SendRemoteCommand() {
+	remoteHID report = {0};
+	
+	// Нажата кнопка "5" на цифровой клавиатуре
+	report.numeric_keypad = 5;
+
+	// Увеличить громкость на +1
+	report.volume = 1; // 0b01
+
+	// Не менять канал
+	report.channel = 0;
+
+	// Нажата кнопка "Mute" (предположим, она = 1)
+	report.special_key = 1;
+
+	// Ничего не выбрано в Selection
+	report.selection = 0;
+
+	// Padding — всегда 2 (согласно дескриптору: LOGICAL_MINIMUM = 2 для этого поля)
+	report.padding = 2; // 0b10
+	
+    SendRemoteReport(&report);
+	
+    // Обязательно отпустить!
+    remoteHID report2 = {0};
+    SendRemoteReport(&report2);
+}
+
+/* ========================================================================== */
 /*                     --- Функция обработки энкодера ---                     */
 /* ========================================================================== */
 void HandleEncoder(void) {
