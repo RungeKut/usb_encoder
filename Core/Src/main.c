@@ -272,8 +272,8 @@ enum {
 	// 0xb3  Decimal Separator
 	// 0xb4  Currency Unit
 	// 0xb5  Currency Sub-unit
-	#define KEY_KPLEFTPAREN 0xb6 // Keypad (
-	#define KEY_KPRIGHTPAREN 0xb7 // Keypad )
+	HIDKEY_KPLEFTPAREN = 0xb6, // Keypad (
+	HIDKEY_KPRIGHTPAREN = 0xb7, // Keypad )
 	// 0xb8  Keypad {
 	// 0xb9  Keypad }
 	// 0xba  Keypad Tab
@@ -455,14 +455,17 @@ void SendMediaReport(mediaHID *kb) {
 // Удобная обёртка: нажать и отпустить одну клавишу
 void PressKeyOnce(uint8_t keycode, uint8_t modifier) {
 	keyboardHID report = {0};
-	report.MODIFIER = modifier;
-	report.KEYCODE1 = keycode;
+	report.id = 1;
+	report.modifier = modifier;
+	report.keycode[0] = keycode;
 	SendKeyboardReport(&report);
 	// Отпустить
-	report.MODIFIER = 0;
-	report.KEYCODE1 = 0;
+	report.id = 1;
+	report.modifier = 0;
+	report.keycode[0] = 0;
 	SendKeyboardReport(&report);
 }
+
 
 // Удобная обёртка: нажать и отпустить одну клавишу
 void PressMediaKeyOnce(uint16_t keycode) {

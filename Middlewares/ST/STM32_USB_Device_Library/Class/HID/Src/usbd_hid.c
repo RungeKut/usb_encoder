@@ -47,10 +47,79 @@ USBD_ClassTypeDef  USBD_HID =
 
 __ALIGN_BEGIN static uint8_t HID_KEYBOARD_ReportDesc[] __ALIGN_END =
 {
-	0x09, 0x02, 0x3B, 0x00, 0x02, 0x01, 0x00, 0xA0, 0x31, 0x09, 0x04, 0x00, 0x00, 0x01, 0x03, 0x01,
-	0x01, 0x00, 0x09, 0x21, 0x10, 0x01, 0x00, 0x01, 0x22, 0x36, 0x00, 0x07, 0x05, 0x81, 0x03, 0x08,
-	0x00, 0x0A, 0x09, 0x04, 0x01, 0x00, 0x01, 0x03, 0x00, 0x00, 0x00, 0x09, 0x21, 0x10, 0x01, 0x00,
-	0x01, 0x22, 0x32, 0x00, 0x07, 0x05
+  0x05, 0x01,        // Usage Page (Generic Desktop Ctrls)
+        0x09, 0x06,        // Usage (Keyboard)
+        0xA1, 0x01,        // Collection (Application)
+        0x85, 0x01,        //   Report ID (1)
+        0x05, 0x07,        //   Usage Page (Kbrd/Keypad)
+        0x19, 0xE0,        //   Usage Minimum (0xE0)
+        0x29, 0xE7,        //   Usage Maximum (0xE7)
+
+        // it seam we missed  the shit ctrl etc .. here
+        0x15, 0x00,        //   Logical Minimum (0)
+        0x25, 0x01,        //   Logical Maximum (1)
+        0x75, 0x01,        //   Report Size (1)
+        0x95, 0x08,        //   Report Count (8)
+        0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+        0x95, 0x01,        //   Report Count (1)
+        0x75, 0x08,        //   Report Size (8)
+        0x81, 0x03,        //   Input (Const,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+#if HID_LED_SUPPORT
+            // --------------------- output report for LED
+    0x95, 0x05,                    //   REPORT_COUNT (5)
+    0x75, 0x01,                    //   REPORT_SIZE (1)
+    0x05, 0x08,                    //   USAGE_PAGE (LEDs)
+    0x19, 0x01,                    //   USAGE_MINIMUM (Num Lock)
+    0x29, 0x05,                    //   USAGE_MAXIMUM (Kana)
+    0x91, 0x02,                    //   OUTPUT (Data,Var,Abs)
+    0x95, 0x01,                    //   REPORT_COUNT (1)
+    0x75, 0x03,                    //   REPORT_SIZE (3)
+    0x91, 0x03,                    //   OUTPUT (Cnst,Var,Abs)
+#endif
+        0x95, 0x06,        //   Report Count (6)
+        0x75, 0x08,        //   Report Size (8)
+        0x15, 0x00,        //   Logical Minimum (0)
+        0x25, 0x65,        //   Logical Maximum (101)
+        0x05, 0x07,        //   Usage Page (Kbrd/Keypad)
+        0x19, 0x00,        //   Usage Minimum (0x00)
+        0x29, 0x65,        //   Usage Maximum (0x65)
+        0x81, 0x00,        //   Input (Data,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
+        0xC0,              // End Collection
+
+        // 47 bytes
+#if HID_MEDIA_REPORT
+        //help from http://www.microchip.com/forums/m618147.aspx
+        // this way of describing and sending media control is convenient
+        // short descriptor that permit all kidn meda by sending "usage" code
+        // see usb hid spec for full list
+        // it is possible to define one media key per bit it requires more space
+        // for descripotor and report ending is tighlyu couple to decriptor
+        // so it is not as convenient
+        // one such working code can be find here https://github.com/markwj/hidmedia/blob/master/hidmedia.X/usb_descriptors.c
+        //
+
+        0x05, 0x0C,        // Usage Page (Consumer)
+        0x09, 0x01,        // Usage (Consumer Control)
+        0xA1, 0x01,        // Collection (Application)
+        0x85, HID_MEDIA_REPORT,        //   Report ID (VOLUME_REPORT )
+        0x19, 0x00,        //   Usage Minimum (Unassigned)
+        0x2A, 0x3C, 0x02,  //   Usage Maximum (AC Format)
+        0x15, 0x00,        //   Logical Minimum (0)
+        0x26, 0x3C, 0x02,  //   Logical Maximum (572)
+        0x95, 0x01,        //   Report Count (1)
+        0x75, 0x10,        //   Report Size (16)
+        0x81, 0x00,        //   Input (Data,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
+        0xC0,              // End Collection
+
+        // how to format the 3 byte report
+        // byte 0 report ID = 0x02 (VOLUME_REPORT)
+        // byte 1 media code  for ex VOL_UP 0xE9 , VOL_DONW 0xEA ... etc
+        // byte 2  0x00
+        // a second  report with 0 code shal be send to avoid "key repaeat"
+
+        // 25 bytes
+#endif
+
 };
 
 __ALIGN_BEGIN static uint8_t HID_MOUSE_ReportDesc[] __ALIGN_END =
