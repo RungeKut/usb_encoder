@@ -518,12 +518,13 @@ void SendConsumerReport(сonsumerHID *сonsumer) {
 
 void SendConsumerCommand(uint16_t usage) {
 	сonsumerHID report = {0};
-	report.lobyte = LOBYTE(usage);
-	report.hibyte = HIBYTE(usage);
+	report.id = 2;
+	report.keys1 = LOBYTE(usage);
+	report.keys2 = HIBYTE(usage);
     SendConsumerReport(&report);
     // Обязательно отпустить!
-    report.lobyte = 0;
-	report.hibyte = 0;
+    report.keys1 = 0;
+	report.keys2 = 0;
     SendConsumerReport(&report);
 }
 

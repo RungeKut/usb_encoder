@@ -47,35 +47,10 @@ USBD_ClassTypeDef  USBD_HID =
 
 __ALIGN_BEGIN static uint8_t HID_KEYBOARD_ReportDesc[] __ALIGN_END =
 {
-  0x09, 0x02,            // Usage (unk)
-  0x3B, 0x00, 0x02, 0x01, 0x00,   // Designator Index (66048)
-  0xA0,               // Collection (Physical)
-  0x31, 0x09,              // unk
-  0x04,                 // Usage Page (Undefined)
-  0x00,                 // unk
-  0x00,                 // unk
-  0x01, 0x03,              // unk
-  0x01, 0x01,              // unk
-  0x00,                 // unk
-  0x09, 0x21,              // Usage (unk)
-  0x10,                 // unk
-  0x01, 0x00,              // unk
-  0x01, 0x22,              // unk
-  0x36, 0x00, 0x07,           // Physical Minimum (1792)
-  0x05, 0x81,              // Usage Page (USB Monitor Enumerated Values)
-  0x03, 0x08, 0x00, 0x0A, 0x09,     // unk
-  0x04,                 // Usage Page (Undefined)
-  0x01, 0x00,              // unk
-  0x01, 0x03,              // unk
-  0x00,                 // unk
-  0x00,                 // unk
-  0x00,                 // unk
-  0x09, 0x21,              // Usage (unk)
-  0x10,                 // unk
-  0x01, 0x00,              // unk
-  0x01, 0x22,              // unk
-  0x32, 0x00, 0x07,           // unk
-  0x05                  // Usage Page (Undefined)
+	0x09, 0x02, 0x3B, 0x00, 0x02, 0x01, 0x00, 0xA0, 0x31, 0x09, 0x04, 0x00, 0x00, 0x01, 0x03, 0x01,
+	0x01, 0x00, 0x09, 0x21, 0x10, 0x01, 0x00, 0x01, 0x22, 0x36, 0x00, 0x07, 0x05, 0x81, 0x03, 0x08,
+	0x00, 0x0A, 0x09, 0x04, 0x01, 0x00, 0x01, 0x03, 0x00, 0x00, 0x00, 0x09, 0x21, 0x10, 0x01, 0x00,
+	0x01, 0x22, 0x32, 0x00, 0x07, 0x05
 };
 
 __ALIGN_BEGIN static uint8_t HID_MOUSE_ReportDesc[] __ALIGN_END =
@@ -161,33 +136,10 @@ __ALIGN_BEGIN static uint8_t HID_REMOTE_ReportDesc[] __ALIGN_END =
 
 __ALIGN_BEGIN static uint8_t HID_CONSUMER_ReportDesc[] __ALIGN_END =
 {
-	0x09, 0x02,            // Usage (unk)
-  0x3B, 0x00, 0x02, 0x01, 0x00,   // Designator Index (66048)
-  0xA0,               // Collection (Physical)
-  0x31, 0x09,              // unk
-  0x04,                 // Usage Page (Undefined)
-  0x00,                 // unk
-  0x00,                 // unk
-  0x01, 0x03,              // unk
-  0x01, 0x01,              // unk
-  0x00,                 // unk
-  0x09, 0x21,              // Usage (unk)
-  0x10,                 // unk
-  0x01, 0x00,              // unk
-  0x01, 0x22,              // unk
-  0x36, 0x00, 0x07,           // Physical Minimum (1792)
-  0x05, 0x81,              // Usage Page (USB Monitor Enumerated Values)
-  0x03, 0x08, 0x00, 0x0A, 0x09,     // unk
-  0x04,                 // Usage Page (Undefined)
-  0x01, 0x00,              // unk
-  0x01, 0x03,              // unk
-  0x00,                 // unk
-  0x00,                 // unk
-  0x00,                 // unk
-  0x09, 0x21,              // Usage (unk)
-  0x10,                 // unk
-  0x01, 0x00,              // unk
-  0x01, 0x22,              // unk
+	0x09, 0x02, 0x3B, 0x00, 0x02, 0x01, 0x00, 0xA0, 0x31, 0x09, 0x04, 0x00, 0x00, 0x01, 0x03, 0x01,
+	0x01, 0x00, 0x09, 0x21, 0x10, 0x01, 0x00, 0x01, 0x22, 0x36, 0x00, 0x07, 0x05, 0x81, 0x03, 0x08,
+	0x00, 0x0A, 0x09, 0x04, 0x01, 0x00, 0x01, 0x03, 0x00, 0x00, 0x00, 0x09, 0x21, 0x10, 0x01, 0x00,
+	0x01, 0x22
 };
 
 __ALIGN_BEGIN static uint8_t HID_CUSTOM_ReportDesc[] __ALIGN_END =
@@ -225,9 +177,9 @@ __ALIGN_BEGIN static uint8_t USBD_HID_CfgDesc[USB_HID_CONFIG_DESC_SIZ] __ALIGN_E
 	/*  6 byte*/ 0x01,	//bConfigurationValue - индекс текущей конфигурации
 	/*  7 byte*/ 0x00,	//iConfiguration - индекс строки, которая описывает эту конфигурацию
 	/*  8 byte*/ 0xA0,	//bmAttributes - признак того, что устройство будет питаться от шины USB
-	/*  9 byte*/ 0x2D,	//MaxPower (90 mA)
+	/*  9 byte*/ 0xFA,	//MaxPower (500 mA)
 
-#ifdef KEYBOARD_CONTROL
+#if HID_INTERFACE_KEYBOARD
 	// ============ INTERFACE 0: KEYBOARD ============
 
 		// Interface Descriptor (9 byte)
@@ -259,7 +211,7 @@ __ALIGN_BEGIN static uint8_t USBD_HID_CfgDesc[USB_HID_CONFIG_DESC_SIZ] __ALIGN_E
 				/*  7 byte*/ HID_FS_BINTERVAL,	//bInterval: Polling Interval (10 ms)
 	#endif
 
-	#ifdef MOUSE_CONTROL
+	#if HID_INTERFACE_MOUSE
 	// ============ INTERFACE 1: MOUSE ============
 
 		// Interface Descriptor (9 byte)
@@ -291,7 +243,7 @@ __ALIGN_BEGIN static uint8_t USBD_HID_CfgDesc[USB_HID_CONFIG_DESC_SIZ] __ALIGN_E
 				/*  7 byte*/ HID_FS_BINTERVAL,	//bInterval: Polling Interval (10 ms)
 	#endif
 
-	#ifdef CONSUMER_CONTROL
+	#if HID_INTERFACE_CONSUMER
 	// ============ INTERFACE 2: CONSUMER CONTROL ============
 
 		// Interface Descriptor (9 byte)
@@ -323,7 +275,7 @@ __ALIGN_BEGIN static uint8_t USBD_HID_CfgDesc[USB_HID_CONFIG_DESC_SIZ] __ALIGN_E
 				/*  7 byte*/ HID_FS_BINTERVAL,	//bInterval: Polling Interval (10 ms)
 	#endif
 
-	#ifdef REMOTE_CONTROL
+	#if HID_INTERFACE_REMOTE
 	// ============ INTERFACE 3: CUSTOM CONTROL ============
 
 		// Interface Descriptor (9 byte)

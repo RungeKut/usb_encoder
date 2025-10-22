@@ -149,7 +149,7 @@ __ALIGN_BEGIN uint8_t USBD_FS_DeviceDesc[USB_LEN_DEV_DESC] __ALIGN_END =
 {
   USB_LEN_DEV_DESC,           // bLength - общая длина дескриптора устройства в байтах
   USB_DESC_TYPE_DEVICE,       // bDescriptorType - показывает, что это за дескриптор. В данном случае - Device descriptor
-  0x00, 0x02,                 // bcdUSB - какую версию стандарта USB поддерживает устройство. 2.0
+  0x10, 0x01,                 // bcdUSB - какую версию стандарта USB поддерживает устройство. 2.0
 	
 	// класс, подкласс устройства и протокол, по стандарту USB. У нас нули, означает каждый интерфейс сам за себя
   0x00,                       /*bDeviceClass*/

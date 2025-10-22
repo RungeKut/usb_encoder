@@ -30,7 +30,7 @@ extern "C" {
 
 #define KEYBOARD_CONTROL
 //#define MOUSE_CONTROL
-#define CONSUMER_CONTROL
+//#define CONSUMER_CONTROL
 //#define REMOTE_CONTROL
 //#define CUSTOM_CONTROL
 
@@ -114,10 +114,9 @@ typedef struct
 
 //Consumer HID Report
 typedef struct {
-	uint8_t lobyte;
-	uint8_t hibyte;
-	uint8_t lobyte2;
-	uint8_t hibyte2;
+	uint8_t id;
+    uint8_t keys1;
+	uint8_t keys2;
 } сonsumerHID;
 
 #define HID_KEYBOARD_EP_SIZE   (sizeof(keyboardHID)) //8
