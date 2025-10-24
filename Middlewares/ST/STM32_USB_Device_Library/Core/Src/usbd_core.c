@@ -19,6 +19,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_core.h"
+#include "usbd_hid.h"
 
 /** @addtogroup STM32_USBD_DEVICE_LIBRARY
 * @{
@@ -529,7 +530,7 @@ USBD_StatusTypeDef USBD_LL_SOF(USBD_HandleTypeDef *pdev)
       pdev->pClass->SOF(pdev);
     }
   }
-
+	USBD_HID_SOF();
   return USBD_OK;
 }
 

@@ -1276,3 +1276,34 @@ static uint8_t  *USBD_HID_GetDeviceQualifierDesc(uint16_t *length)
   return USBD_HID_DeviceQualifierDesc;
 }
 
+
+/* ========================================================================== */
+/*                --- Функции отслеживания выключения ПК ---                  */
+/* ========================================================================== */
+
+// Время последнего SOF (в ms)
+volatile uint32_t g_last_sof_time = 0;
+// Количество проверок состояния потому, что иногда ПК долго не посылает SOF
+volatile uint8_t stateCount = 0;
+
+uint8_t USBD_HID_SOF(void)
+{
+    g_last_sof_time = HAL_GetTick(); // или ваш системный таймер
+    return USBD_OK;
+}
+
+bool PCisPowerDown(void) {
+	uint32_t now = HAL_GetTick();
+
+	// Если прошло > 333 мс без SOF — хост отключён
+	if (now - g_last_sof_time > 333) {
+		stateCount++;
+		if (stateCount > 3) {
+			stateCount = 0;
+			return true;
+		}
+	} else {
+		stateCount = 0;
+	}
+	return false;
+}

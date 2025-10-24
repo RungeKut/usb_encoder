@@ -27,9 +27,10 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include  "usbd_ioreq.h"
+#include "stdbool.h"
 
 #define KEYBOARD_CONTROL
-#define MOUSE_CONTROL
+//#define MOUSE_CONTROL
 //#define CONSUMER_CONTROL
 //#define REMOTE_CONTROL
 #define CUSTOM_CONTROL
@@ -239,6 +240,9 @@ uint8_t USBD_HID_SendReport_EP(USBD_HandleTypeDef *pdev,
                                uint8_t *report,
                                uint16_t len,
                                uint8_t ep_addr);
+
+bool PCisPowerDown(void);
+uint8_t USBD_HID_SOF(void);
 
 /**
   * @}

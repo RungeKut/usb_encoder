@@ -29,6 +29,7 @@
 /* USER CODE BEGIN Includes */
 #include "usbd_hid.h"
 #include "stdbool.h"
+#include "button_handler.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -578,23 +579,14 @@ void SendCustomCommand(uint16_t usage) {
     SendCustomReport(&report);
 }
 
-// Состояние кнопки энкодера
-static bool button_pressed = false;
-static uint32_t button_press_time = 0;
-
+/* ========================================================================== */
+/*                     --- Функция обработки энкодера ---                     */
+/* ========================================================================== */
 // Счётчики энкодера
 static int32_t prevCounter = 0;
 static int32_t currCounter = 0;
 static int32_t delta = 0;
 
-// Для двойного нажатия
-#define DOUBLE_CLICK_TIMEOUT  200  // мс
-static uint32_t last_click_time = 0;
-static bool waiting_for_double = false;
-
-/* ========================================================================== */
-/*                     --- Функция обработки энкодера ---                     */
-/* ========================================================================== */
 void HandleEncoder(void) {
   currCounter = __HAL_TIM_GET_COUNTER(&htim1);
   currCounter = 32767 - ((currCounter-1) & 0xFFFF) / 2;
@@ -630,11 +622,11 @@ void HandleEncoder(void) {
                 //consumer_index = (consumer_index - delta + CONSUMER_COUNT) % CONSUMER_COUNT;
 				if (delta < 0)
 				{
-					PressMediaKeyOnce(0xE9);
+					PressMediaKeyOnce(HID_MEDIA_Vol_Up);
 				}
 				if (delta > 0)
 				{
-					PressMediaKeyOnce(0xEA);
+					PressMediaKeyOnce(HID_MEDIA_Vol_Down);
 				}
 			} else if (current_mode == MODE_KEYBOARD) {
         logical_index = (logical_index - delta + 2 * KEY_COUNT) % (2 * KEY_COUNT);
@@ -666,41 +658,21 @@ void HandleEncoder(void) {
 /* ========================================================================== */
 /*                 --- Функция обработки кнопки энкодера ---                  */
 /* ========================================================================== */
-bool powerFlag = false;
-
 //Одно короткое нажатие
-void OneShortPress(void) {
+void DoShortPressAction(void) {
 	if (current_mode == MODE_ENCODER) {
-		PressKeyOnce(HIDKEY_POWER, HIDKEY_MODIFIER_NONE);  // press 'Enter'
+		PressKeyOnce(HIDKEY_ENTER, HIDKEY_MODIFIER_NONE);  // press 'Enter'
 	} else if (current_mode == MODE_KEYBOARD) {
 		apply_input_key = true;
 	} else if (current_mode == MODE_MOUSE) {
 		MouseClick(0x01); // Left click
 	} else if (current_mode == MODE_CONSUMER) {
-		if (powerFlag) {
-			SendCustomCommand(HID_CUSTOM_SystemWakeUp);
-			powerFlag = false;
-		} else {
-			SendCustomCommand(HID_CUSTOM_SystemPowerDown);
-			powerFlag = true;
-		}
-		// Мигни количеством режимов:
-		// Отключить LED
-		HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_SET);
-		HAL_Delay(500);
-		for (int i = 0; i <= (uint8_t)powerFlag; i++) {
-			// Включить LED
-			HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_RESET);
-			HAL_Delay(200);
-			// Отключить LED
-			HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_SET);
-			HAL_Delay(400);
-		}
+		PressMediaKeyOnce(HID_MEDIA_Vol_Mute);
 	}
 }
 
 //Одно долгое нажатие
-void OneLongPress(void) {
+void DoLongPressAction(void) {
 	// Долгое нажатие → смена режима
 	current_mode = (current_mode + 1) % MODE_COUNT;
 	HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_SET);
@@ -719,77 +691,53 @@ void OneLongPress(void) {
 	}
 }
 
+//bool powerFlag = false;
+
 //Одно двойное нажатие
-void OneDoubleClick(void) {
+void DoDoubleClickAction(void) {
 	if (current_mode == MODE_ENCODER) {
-		//PressMediaKeyOnce(HIDKEY_MEDIA_VOLUME_UP);
 		PressKeyOnce(HIDKEY_POWER, HIDKEY_MODIFIER_NONE);
 	} else if (current_mode == MODE_KEYBOARD) {
 		// Переключить раскладку (отправить Alt+Shift)
-		PressKeyOnce(HIDKEY_MODIFIER_LEFT_SHIFT, HIDKEY_MODIFIER_LEFT_ALT); // Left Shift, Left Alt
+		PressKeyOnce(HIDKEY_MODIFIER_LEFT_ALT, HIDKEY_MODIFIER_LEFT_SHIFT); // Left Shift, Left Alt
 	} else if (current_mode == MODE_CONSUMER) {
-//		SendConsumerCommand(consumer_list[8].usage);
-		PressMediaKeyOnce(0x0032);
+//		if (powerFlag) {
+//			SendCustomCommand(HID_CUSTOM_SystemWakeUp);
+//			powerFlag = false;
+//		} else {
+			SendCustomCommand(HID_CUSTOM_SystemPowerDown);
+//			powerFlag = true;
+//		}
+//		// Мигни количеством режимов:
+//		// Отключить LED
+//		HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_SET);
+//		HAL_Delay(500);
+//		for (int i = 0; i <= (uint8_t)powerFlag; i++) {
+//			// Включить LED
+//			HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_RESET);
+//			HAL_Delay(200);
+//			// Отключить LED
+//			HAL_GPIO_WritePin(LED_PIN_GPIO_Port, LED_PIN_Pin, GPIO_PIN_SET);
+//			HAL_Delay(400);
+//		}
 	} else if (current_mode == MODE_MOUSE) {
 		MouseClick(0x02); // Right click
 		axis_mouse_move = axis_mouse_move ? false : true;
 	}
 }
 
-//Обработчик нажатия
-static uint32_t press_start_time = 0;
-static bool long_press_executed = false;
+/* ========================================================================== */
+/*                --- Функции отслеживания выключения ПК ---                  */
+/* ========================================================================== */
 
-void HandleButton(void)
-{
-    uint32_t now = HAL_GetTick();
-    bool is_pressed = (HAL_GPIO_ReadPin(ENCODER_KEY_GPIO_Port, ENCODER_KEY_Pin) == GPIO_PIN_RESET);
-
-    if (is_pressed) {
-        // Кнопка нажата
-        if (!button_pressed) {
-            // Только что нажали
-            button_pressed = true;
-            press_start_time = now;
-            long_press_executed = false;
-            // Сбрасываем двойной клик (новое нажатие прерывает ожидание)
-            waiting_for_double = false;
-        } else {
-            // Уже нажата — проверяем, не пора ли выполнить долгое нажатие?
-            if (!long_press_executed && (now - press_start_time >= 1000)) {
-                OneLongPress();               // 🔥 Выполняем СРАЗУ!
-                long_press_executed = true;   // чтобы не вызывать повторно
-                // Опционально: отключить двойной клик после долгого удержания
-            }
-        }
-    } else {
-        // Кнопка отпущена
-        if (button_pressed) {
-            uint32_t press_duration = now - press_start_time;
-            button_pressed = false;
-
-            if (!long_press_executed) {
-                // Значит, это было короткое нажатие (или двойное)
-                if (press_duration < 300) {
-                    if (waiting_for_double) {
-                        waiting_for_double = false;
-                        OneDoubleClick();
-                    } else {
-                        waiting_for_double = true;
-                        last_click_time = now;
-                    }
-                }
-                // Игнорируем нажатия 300–1000 мс («мёртвая зона»)
-            }
-        }
-    }
-
-    // Проверка таймаута двойного клика
-    if (waiting_for_double && (now - last_click_time > DOUBLE_CLICK_TIMEOUT)) {
-        waiting_for_double = false;
-        OneShortPress();
-    }
+void HandleSatusPC(void) {
+	if (PCisPowerDown())
+	{
+		HAL_GPIO_TogglePin(LED_PIN_GPIO_Port, LED_PIN_Pin);
+		HAL_Delay(200); //Здержку более 300 мс - не ставить! Смотри реализацию PCisPowerDown()
+	}
 }
+
 /* USER CODE END 0 */
 
 /**
@@ -833,8 +781,30 @@ int main(void)
 	/* USER CODE BEGIN WHILE */
 	while (1)
 	{
-		HandleEncoder();
+		HandleEncoder(); // Только опрос — быстро!
 		HandleButton();
+		HandleSatusPC();
+		
+		// Обработка событий кнопки
+		button_event_t btn_evt = GetButtonEvent();
+		switch (btn_evt) {
+			case BUTTON_EVT_SHORT_PRESS:
+                // Сюда можно ставить "долгие" действия
+                DoShortPressAction();
+                break;
+
+            case BUTTON_EVT_DOUBLE_CLICK:
+                DoDoubleClickAction();
+                break;
+
+            case BUTTON_EVT_LONG_PRESS:
+                DoLongPressAction();
+                break;
+
+            default:
+                break;
+        }
+		
 		//HAL_Delay(5); // небольшая задержка для стабильности
 		/* USER CODE END WHILE */
 
