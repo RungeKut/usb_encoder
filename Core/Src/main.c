@@ -696,7 +696,7 @@ void DoLongPressAction(void) {
 //Одно двойное нажатие
 void DoDoubleClickAction(void) {
 	if (current_mode == MODE_ENCODER) {
-		PressKeyOnce(HIDKEY_POWER, HIDKEY_MODIFIER_NONE);
+		PressKeyOnce(HIDKEY_BACKSPACE, HIDKEY_MODIFIER_NONE);
 	} else if (current_mode == MODE_KEYBOARD) {
 		// Переключить раскладку (отправить Alt+Shift)
 		PressKeyOnce(HIDKEY_MODIFIER_LEFT_ALT, HIDKEY_MODIFIER_LEFT_SHIFT); // Left Shift, Left Alt
