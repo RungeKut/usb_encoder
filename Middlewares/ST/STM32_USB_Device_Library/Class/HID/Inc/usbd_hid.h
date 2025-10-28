@@ -29,56 +29,16 @@ extern "C" {
 #include  "usbd_ioreq.h"
 #include "stdbool.h"
 
-#define KEYBOARD_CONTROL
-//#define MOUSE_CONTROL
-//#define CONSUMER_CONTROL
-//#define REMOTE_CONTROL
-#define CUSTOM_CONTROL
-
-
-#ifdef KEYBOARD_CONTROL
-#define HID_INTERFACE_KEYBOARD 1
-#else
-#define HID_INTERFACE_KEYBOARD 0
-#endif
-
-#ifdef MOUSE_CONTROL
-#define HID_INTERFACE_MOUSE 1
-#else
-#define HID_INTERFACE_MOUSE 0
-#endif
-
-#ifdef CONSUMER_CONTROL
-#define HID_INTERFACE_CONSUMER 1
-#else
-#define HID_INTERFACE_CONSUMER 0
-#endif
-
-#ifdef REMOTE_CONTROL
-#define HID_INTERFACE_REMOTE 1
-#else
-#define HID_INTERFACE_REMOTE 0
-#endif
-
-#ifdef CUSTOM_CONTROL
-#define HID_INTERFACE_CUSTOM 1
-#else
-#define HID_INTERFACE_CUSTOM 0
-#endif
-
-#define HID_INTERFACE_COUNT (HID_INTERFACE_KEYBOARD + HID_INTERFACE_MOUSE + HID_INTERFACE_CONSUMER + HID_INTERFACE_REMOTE + HID_INTERFACE_CUSTOM)
+#define HID_INTERFACE_COUNT 1
 
 #define  HID_MEDIA_REPORT  2
 #define HID_LED_SUPPORT 0
 
-#define HID_KEYBOARD_EP        (0x80U + HID_INTERFACE_KEYBOARD)
-#define HID_MOUSE_EP           (HID_KEYBOARD_EP + HID_INTERFACE_MOUSE)
-#define HID_CONSUMER_EP        (HID_MOUSE_EP + HID_INTERFACE_CONSUMER)
-#define HID_REMOTE_EP          (HID_CONSUMER_EP + HID_INTERFACE_REMOTE)
-#define HID_CUSTOM_EP          (HID_REMOTE_EP + HID_INTERFACE_CUSTOM)
+#define HID_COMPOSITE_EP        0x81U
 
 //Mouse HID Report
 typedef struct {
+	uint8_t id;
 	uint8_t buttons;   // bit 0 = left, 1 = right, 2 = middle
 	int8_t x;          // movement X
 	int8_t y;          // movement Y
@@ -99,74 +59,20 @@ typedef struct
 typedef struct
 {
     uint8_t id;
-    uint8_t keys;
+    uint8_t lsb;
+	uint8_t msb;
 } mediaHID;
-
-// Remote HID Report
-typedef struct
-{
-    // Байт 0
-    uint8_t numeric_keypad : 4;   // 1–10 или 0 — если не нажата
-    uint8_t channel        : 2;   // -1=0b11, 0=0b00, +1=0b01 (см. ниже)
-    uint8_t volume         : 2;   // -1=0b11, 0=0b00, +1=0b01
-
-    // Байт 1
-    uint8_t special_key    : 4;   // 1–7 или 0 — если не нажата
-    uint8_t selection      : 2;   // 1–3 или 0
-    uint8_t padding        : 2;   // всегда 0b10 (LOGICAL_MINIMUM = 2)
-} remoteHID;
-
-//Consumer HID Report
-typedef struct {
-	uint8_t lsb;
-    uint8_t msb;
-} сonsumerHID;
 
 //Custom HID Report
 typedef struct {
-	uint8_t lsb;
-//    uint8_t msb;
+	uint8_t id;
+	uint8_t keys;
 } customHID;
 
-#define HID_KEYBOARD_EP_SIZE   (sizeof(keyboardHID))
-#define HID_MOUSE_EP_SIZE      (sizeof(mouseHID))
-#define HID_CONSUMER_EP_SIZE   (sizeof(сonsumerHID))
-#define HID_REMOTE_EP_SIZE     (sizeof(remoteHID))
-#define HID_MEDIA_EP_SIZE      (sizeof(mediaHID))
-#define HID_CUSTOM_EP_SIZE     (sizeof(customHID))
-
-#ifdef KEYBOARD_CONTROL
-#define USB_HID_CONFIG_DESC_SIZ_KEYBOARD (9 + 9 + 7)
-#else
-#define USB_HID_CONFIG_DESC_SIZ_KEYBOARD 0
-#endif
-
-#ifdef MOUSE_CONTROL
-#define USB_HID_CONFIG_DESC_SIZ_MOUSE (9 + 9 + 7)
-#else
-#define USB_HID_CONFIG_DESC_SIZ_MOUSE 0
-#endif
-
-#ifdef CONSUMER_CONTROL
-#define USB_HID_CONFIG_DESC_SIZ_CONSUMER (9 + 9 + 7)
-#else
-#define USB_HID_CONFIG_DESC_SIZ_CONSUMER 0
-#endif
-
-#ifdef REMOTE_CONTROL
-#define USB_HID_CONFIG_DESC_SIZ_REMOTE (9 + 9 + 7)
-#else
-#define USB_HID_CONFIG_DESC_SIZ_REMOTE 0
-#endif
-
-#ifdef CUSTOM_CONTROL
-#define USB_HID_CONFIG_DESC_SIZ_CUSTOM (9 + 9 + 7)
-#else
-#define USB_HID_CONFIG_DESC_SIZ_CUSTOM 0
-#endif
+#define HID_COMPOSITE_EP_SIZE   9
 
 #define USB_HID_DESC_SIZ              9U
-#define USB_HID_CONFIG_DESC_SIZ       (USB_HID_DESC_SIZ + USB_HID_CONFIG_DESC_SIZ_KEYBOARD + USB_HID_CONFIG_DESC_SIZ_MOUSE + USB_HID_CONFIG_DESC_SIZ_CONSUMER + USB_HID_CONFIG_DESC_SIZ_REMOTE + USB_HID_CONFIG_DESC_SIZ_CUSTOM)
+#define USB_HID_CONFIG_DESC_SIZ       (9+9+9+7)
 
 #define HID_DESCRIPTOR_TYPE           0x21U
 #define HID_REPORT_DESC               0x22U
@@ -236,10 +142,6 @@ uint8_t USBD_HID_SendReport(USBD_HandleTypeDef *pdev,
 
 uint32_t USBD_HID_GetPollingInterval(USBD_HandleTypeDef *pdev);
 
-uint8_t USBD_HID_SendReport_EP(USBD_HandleTypeDef *pdev,
-                               uint8_t *report,
-                               uint16_t len,
-                               uint8_t ep_addr);
 
 bool PCisPowerDown(void);
 uint8_t USBD_HID_SOF(void);

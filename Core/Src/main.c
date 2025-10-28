@@ -435,13 +435,13 @@ bool apply_input_key = true;
 /* ========================================================================== */
 
 void SendKeyboardReport(keyboardHID *kb) {
-	USBD_HID_SendReport_EP(&hUsbDeviceFS, (uint8_t *)kb, HID_KEYBOARD_EP_SIZE, HID_KEYBOARD_EP);
 	HAL_Delay(10);
+	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)kb, sizeof(keyboardHID));
 }
 
 void SendMediaReport(mediaHID *kb) {
-	USBD_HID_SendReport_EP(&hUsbDeviceFS, (uint8_t *)kb, HID_MEDIA_EP_SIZE, HID_KEYBOARD_EP);
 	HAL_Delay(10);
+	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)kb, sizeof(mediaHID));
 }
 
 // Удобная обёртка: нажать и отпустить одну клавишу
@@ -461,17 +461,16 @@ void PressKeyOnce(uint8_t keycode, uint8_t modifier) {
 
 // Удобная обёртка: нажать и отпустить одну клавишу
 void PressMediaKeyOnce(uint16_t keycode) {
-	uint8_t report[3];
-	report[0]= HID_MEDIA_REPORT;
-	report[1]= LOBYTE(keycode);
-	report[2]= HIBYTE(keycode);
-	USBD_HID_SendReport_EP(&hUsbDeviceFS, report, sizeof(report), HID_KEYBOARD_EP);
+	mediaHID report = {0};
+	report.id = HID_MEDIA_REPORT;
+	report.lsb = LOBYTE(keycode);
+	report.msb = HIBYTE(keycode);
+	SendMediaReport(&report);
 	HAL_Delay(30);
 
-	report[0]= HID_MEDIA_REPORT;
-	report[1]= 0x00;
-	report[2]= 0x00;
-	USBD_HID_SendReport_EP(&hUsbDeviceFS, report, sizeof(report), HID_KEYBOARD_EP);
+	report.lsb = 0x00;
+	report.msb = 0x00;
+	SendMediaReport(&report);
 	HAL_Delay(30);
 }
 
@@ -480,8 +479,8 @@ void PressMediaKeyOnce(uint16_t keycode) {
 /* ========================================================================== */
 
 void SendMouseReport(mouseHID *mouse) {
-    USBD_HID_SendReport_EP(&hUsbDeviceFS, (uint8_t *)mouse, sizeof(mouseHID), HID_MOUSE_EP);
 	HAL_Delay(20);
+    USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)mouse, sizeof(mouseHID));
 }
 
 // Ось перемещения мыши: false - Ось X, true - Ось Y
@@ -489,6 +488,7 @@ bool axis_mouse_move = false;
 
 void MouseMove(int8_t x, int8_t y) {
     mouseHID report = {0};
+	report.id = 3;
     report.x = x;
     report.y = y;
     SendMouseReport(&report);
@@ -496,67 +496,11 @@ void MouseMove(int8_t x, int8_t y) {
 
 void MouseClick(uint8_t button) {
     mouseHID report = {0};
+	report.id = 3;
     report.buttons = button;
     SendMouseReport(&report);
     report.buttons = 0;
     SendMouseReport(&report);
-}
-
-/* ========================================================================== */
-/*             --- Функции отправки для медиа устройства ---                  */
-/* ========================================================================== */
-
-void SendConsumerReport(сonsumerHID *сonsumer) {
-	HAL_Delay(100);
-    USBD_HID_SendReport_EP(&hUsbDeviceFS, (uint8_t *)сonsumer, sizeof(сonsumerHID), HID_CONSUMER_EP);
-}
-
-void SendConsumerCommand(uint16_t usage) {
-	сonsumerHID report = {0};
-	report.lsb = LOBYTE(usage);
-	report.msb = HIBYTE(usage);
-    SendConsumerReport(&report);
-    // Обязательно отпустить!
-    report.lsb = 0;
-	report.msb = 0;
-    SendConsumerReport(&report);
-}
-
-/* ========================================================================== */
-/*       --- Функции отправки для пульта дистанционного управления ---        */
-/* ========================================================================== */
-
-void SendRemoteReport(remoteHID *remote) {
-	HAL_Delay(10);
-    USBD_HID_SendReport_EP(&hUsbDeviceFS, (uint8_t *)remote, sizeof(remoteHID), HID_REMOTE_EP);
-}
-
-void SendRemoteCommand() {
-	remoteHID report = {0};
-	
-	// Нажата кнопка "5" на цифровой клавиатуре
-	report.numeric_keypad = 5;
-
-	// Увеличить громкость на +1
-	report.volume = 1; // 0b01
-
-	// Не менять канал
-	report.channel = 0;
-
-	// Нажата кнопка "Mute" (предположим, она = 1)
-	report.special_key = 1;
-
-	// Ничего не выбрано в Selection
-	report.selection = 0;
-
-	// Padding — всегда 2 (согласно дескриптору: LOGICAL_MINIMUM = 2 для этого поля)
-	report.padding = 2; // 0b10
-	
-    SendRemoteReport(&report);
-	
-    // Обязательно отпустить!
-    remoteHID report2 = {0};
-    SendRemoteReport(&report2);
 }
 
 /* ========================================================================== */
@@ -565,17 +509,16 @@ void SendRemoteCommand() {
 
 void SendCustomReport(customHID *custom) {
 	HAL_Delay(100);
-    USBD_HID_SendReport_EP(&hUsbDeviceFS, (uint8_t *)custom, sizeof(customHID), HID_CUSTOM_EP);
+    USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)custom, sizeof(customHID));
 }
 
-void SendCustomCommand(uint16_t usage) {
+void SendCustomCommand(uint8_t usage) {
 	customHID report = {0};
-	report.lsb = LOBYTE(usage);
-//	report.msb = HIBYTE(usage);
+	report.id = 4;
+	report.keys = usage;
     SendCustomReport(&report);
     // Обязательно отпустить!
-    report.lsb = 0;
-//	report.msb = 0;
+    report.keys = 0;
     SendCustomReport(&report);
 }
 

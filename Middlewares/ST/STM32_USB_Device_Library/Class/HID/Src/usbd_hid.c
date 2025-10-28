@@ -45,626 +45,97 @@ USBD_ClassTypeDef  USBD_HID =
 
 /* Report Descriptors --------------------------------------------------------*/
 
-__ALIGN_BEGIN static uint8_t HID_KEYBOARD_ReportDesc[] __ALIGN_END =
+__ALIGN_BEGIN static uint8_t HID_Composite_ReportDesc[] __ALIGN_END =
 {
-  0x05, 0x01,        // Usage Page (Generic Desktop Ctrls)
-        0x09, 0x06,        // Usage (Keyboard)
-        0xA1, 0x01,        // Collection (Application)
-        0x85, 0x01,        //   Report ID (1)
-        0x05, 0x07,        //   Usage Page (Kbrd/Keypad)
-        0x19, 0xE0,        //   Usage Minimum (0xE0)
-        0x29, 0xE7,        //   Usage Maximum (0xE7)
+	// ============ Keyboard ============
+	0x05, 0x01,        // Usage Page (Generic Desktop Ctrls)
+	0x09, 0x06,        // Usage (Keyboard)
+	0xA1, 0x01,        // Collection (Application)
+		0x85, 0x01,        // Report ID (1)
+		0x05, 0x07,        // Usage Page (Kbrd/Keypad)
+		0x19, 0xE0,        // Usage Minimum (0xE0)
+		0x29, 0xE7,        // Usage Maximum (0xE7)
+		0x15, 0x00,        // Logical Minimum (0)
+		0x25, 0x01,        // Logical Maximum (1)
+		0x75, 0x01,        // Report Size (1)
+		0x95, 0x08,        // Report Count (8)
+		0x81, 0x02,        // Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+				           
+		0x95, 0x01,        // Report Count (1)
+		0x75, 0x08,        // Report Size (8)
+		0x81, 0x03,        // Input (Const,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+				           
+		0x95, 0x06,        // Report Count (6)
+		0x75, 0x08,        // Report Size (8)
+		0x15, 0x00,        // Logical Minimum (0)
+		0x25, 0x65,        // Logical Maximum (101)
+		0x05, 0x07,        // Usage Page (Kbrd/Keypad)
+		0x19, 0x00,        // Usage Minimum (0x00)
+		0x29, 0x65,        // Usage Maximum (0x65)
+		0x81, 0x00,        // Input (Data,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
+	0xC0,              // End Collection
+	
+	// ============= Media ==============
+	0x05, 0x0C,        // Usage Page (Consumer)
+	0x09, 0x01,        // Usage (Consumer Control)
+	0xA1, 0x01,        // Collection (Application)
+		0x85, HID_MEDIA_REPORT,        //   Report ID (VOLUME_REPORT )
+		0x19, 0x00,        //   Usage Minimum (Unassigned)
+		0x2A, 0x3C, 0x02,  //   Usage Maximum (AC Format)
+		0x15, 0x00,        //   Logical Minimum (0)
+		0x26, 0x3C, 0x02,  //   Logical Maximum (572)
+		0x95, 0x01,        //   Report Count (1)
+		0x75, 0x10,        //   Report Size (16)
+		0x81, 0x00,        //   Input (Data,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
+	0xC0,              // End Collection
+	
+	// ============ Mouse ============
+	0x05, 0x01,        // Usage Page (Generic Desktop)
+	0x09, 0x02,        // Usage (Mouse)
+	0xA1, 0x01,        // Collection (Application)
+		0x85, 0x03,        // Report ID (1)
+		0x09, 0x01,        // Usage (Pointer)
+		0xA1, 0x00,        // Collection (Physical)
+			0x05, 0x09,        // Usage Page (Buttons)
+			0x19, 0x01,        // Usage Minimum (Button 1)
+			0x29, 0x03,        // Usage Maximum (Button 3)
+			0x15, 0x00,        // Logical Minimum (0)
+			0x25, 0x01,        // Logical Maximum (1)
+			0x95, 0x03,        // Report Count (3)
+			0x75, 0x01,        // Report Size (1)
+			0x81, 0x02,        // Input (Data, Variable, Absolute)
+			0x95, 0x01,        // Report Count (1)
+			0x75, 0x05,        // Report Size (5)
+			0x81, 0x03,        // Input (Constant)
+			0x05, 0x01,        // Usage Page (Generic Desktop)
+			0x09, 0x30,        // Usage (X)
+			0x09, 0x31,        // Usage (Y)
+			0x09, 0x38,        // Usage (Wheel)
+			0x15, 0x81,        // Logical Minimum (-127)
+			0x25, 0x7F,        // Logical Maximum (127)
+			0x75, 0x08,        // Report Size (8)
+			0x95, 0x03,        // Report Count (3)
+			0x81, 0x06,        // Input (Data, Variable, Relative)
+		0xC0,              // End Collection
+	0xC0,              // End Collection
 
-        // it seam we missed  the shit ctrl etc .. here
-        0x15, 0x00,        //   Logical Minimum (0)
-        0x25, 0x01,        //   Logical Maximum (1)
-        0x75, 0x01,        //   Report Size (1)
-        0x95, 0x08,        //   Report Count (8)
-        0x81, 0x02,        //   Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
-        0x95, 0x01,        //   Report Count (1)
-        0x75, 0x08,        //   Report Size (8)
-        0x81, 0x03,        //   Input (Const,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
-#if HID_LED_SUPPORT
-            // --------------------- output report for LED
-    0x95, 0x05,                    //   REPORT_COUNT (5)
-    0x75, 0x01,                    //   REPORT_SIZE (1)
-    0x05, 0x08,                    //   USAGE_PAGE (LEDs)
-    0x19, 0x01,                    //   USAGE_MINIMUM (Num Lock)
-    0x29, 0x05,                    //   USAGE_MAXIMUM (Kana)
-    0x91, 0x02,                    //   OUTPUT (Data,Var,Abs)
-    0x95, 0x01,                    //   REPORT_COUNT (1)
-    0x75, 0x03,                    //   REPORT_SIZE (3)
-    0x91, 0x03,                    //   OUTPUT (Cnst,Var,Abs)
-#endif
-        0x95, 0x06,        //   Report Count (6)
-        0x75, 0x08,        //   Report Size (8)
-        0x15, 0x00,        //   Logical Minimum (0)
-        0x25, 0x65,        //   Logical Maximum (101)
-        0x05, 0x07,        //   Usage Page (Kbrd/Keypad)
-        0x19, 0x00,        //   Usage Minimum (0x00)
-        0x29, 0x65,        //   Usage Maximum (0x65)
-        0x81, 0x00,        //   Input (Data,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
-        0xC0,              // End Collection
-
-        // 47 bytes
-#if HID_MEDIA_REPORT
-        //help from http://www.microchip.com/forums/m618147.aspx
-        // this way of describing and sending media control is convenient
-        // short descriptor that permit all kidn meda by sending "usage" code
-        // see usb hid spec for full list
-        // it is possible to define one media key per bit it requires more space
-        // for descripotor and report ending is tighlyu couple to decriptor
-        // so it is not as convenient
-        // one such working code can be find here https://github.com/markwj/hidmedia/blob/master/hidmedia.X/usb_descriptors.c
-        //
-
-        0x05, 0x0C,        // Usage Page (Consumer)
-        0x09, 0x01,        // Usage (Consumer Control)
-        0xA1, 0x01,        // Collection (Application)
-        0x85, HID_MEDIA_REPORT,        //   Report ID (VOLUME_REPORT )
-        0x19, 0x00,        //   Usage Minimum (Unassigned)
-        0x2A, 0x3C, 0x02,  //   Usage Maximum (AC Format)
-        0x15, 0x00,        //   Logical Minimum (0)
-        0x26, 0x3C, 0x02,  //   Logical Maximum (572)
-        0x95, 0x01,        //   Report Count (1)
-        0x75, 0x10,        //   Report Size (16)
-        0x81, 0x00,        //   Input (Data,Array,Abs,No Wrap,Linear,Preferred State,No Null Position)
-        0xC0,              // End Collection
-
-        // how to format the 3 byte report
-        // byte 0 report ID = 0x02 (VOLUME_REPORT)
-        // byte 1 media code  for ex VOL_UP 0xE9 , VOL_DONW 0xEA ... etc
-        // byte 2  0x00
-        // a second  report with 0 code shal be send to avoid "key repaeat"
-
-        // 25 bytes
-#endif
-
-};
-
-__ALIGN_BEGIN static uint8_t HID_MOUSE_ReportDesc[] __ALIGN_END =
-{
-	0x05, 0x01, // USAGE_PAGE (Generic Desktop)
-	0x09, 0x02, // USAGE (Mouse)
-	0xA1, 0x01, // COLLECTION (Application)
-		0x09, 0x01, // USAGE (Pointer)
-		0xA1, 0x00, // COLLECTION (Physical)
-			0x05, 0x09, // USAGE_PAGE (Button)
-			0x19, 0x01, // USAGE_MINIMUM (Button 1)
-			0x29, 0x03, // USAGE_MAXIMUM (Button 3)
-			0x15, 0x00, // LOGICAL_MINIMUM (0)
-			0x25, 0x01, // LOGICAL_MAXIMUM (1)
-			0x95, 0x03, // REPORT_COUNT (3)
-			0x75, 0x01, // REPORT_SIZE (1)
-			0x81, 0x02, // INPUT (Data,Var,Abs)
-			0x95, 0x01, // REPORT_COUNT (1)
-			0x75, 0x05, // REPORT_SIZE (5)
-			0x81, 0x03, // INPUT (Cnst,Var,Abs)
-			0x05, 0x01, // USAGE_PAGE (Generic Desktop)
-			0x09, 0x30, // USAGE (X)
-			0x09, 0x31, // USAGE (Y)
-			0x15, 0x81, // LOGICAL_MINIMUM (-127)
-			0x25, 0x7F, // LOGICAL_MAXIMUM (127)
-			0x75, 0x08, // REPORT_SIZE (8)
-			0x95, 0x02, // REPORT_COUNT (2)
-			0x81, 0x06, // INPUT (Data,Var,Rel)
-		0xC0,       // END_COLLECTION
-	0xC0        // END_COLLECTION
-};
-
-__ALIGN_BEGIN static uint8_t HID_REMOTE_ReportDesc[] __ALIGN_END =
-{
-0x05, 0x0C, // USAGE_PAGE (Consumer Devices)	
-0x09, 0x01, // USAGE (Consumer Control)	
-0xA1, 0x01, // COLLECTION (Application)	
-  0x09, 0x02, // USAGE (Numeric Key Pad)	
-  0xA1, 0x02, // COLLECTION (Logical)	
-    0x05, 0x09, // USAGE_PAGE (Button)	
-    0x19, 0x01, // USAGE_MINIMUM (Button 1)	
-    0x29, 0x0A, // USAGE_MAXIMUM (Button 10)	
-    0x15, 0x01, // LOGICAL_MINIMUM (1)	
-    0x25, 0x0A, // LOGICAL_MAXIMUM (10)	
-    0x75, 0x04, // REPORT_SIZE (4)	
-    0x95, 0x01, // REPORT_COUNT (1)	
-    0x81, 0x00, // INPUT (Data,Ary,Abs)	
-  0xC0,       // END_COLLECTI
-  0x05, 0x0C, // USAGE_PAGE (Consumer Devices)	
-  0x09, 0x86, // USAGE (Channel)	
-  0x09, 0xE0, // USAGE (Volume)	
-  0x15, 0xFF, // LOGICAL_MINIMUM (-1)	
-  0x25, 0x01, // LOGICAL_MAXIMUM (1)	
-  0x75, 0x02, // REPORT_SIZE (2)	
-  0x95, 0x02, // REPORT_COUNT (2)	
-  0x81, 0x46, // INPUT (Data,Var,Rel,Null)	
-  0x09, 0xE2, // USAGE (Mute)	
-  0x09, 0x30, // USAGE (Power)	
-  0x09, 0x34, // USAGE (Sleep Mode)	
-  0x09, 0x60, // USAGE (Data On Screen)	
-  0x09, 0x64, // USAGE (Broadcast Mode)	
-  0x09, 0x83, // USAGE (Recall Last)	
-  0x09, 0x81, // USAGE (Assign Selection)	
-  0x15, 0x01, // LOGICAL_MINIMUM (1)	
-  0x25, 0x07, // LOGICAL_MAXIMUM (7)	
-  0x75, 0x04, // REPORT_SIZE (4)	
-  0x95, 0x01, // REPORT_COUNT (1)	
-  0x81, 0x00, // INPUT (Data,Ary,Abs)	
-  0x09, 0x80, // USAGE (Selection)	
-  0xA1, 0x02, // COLLECTION (Logical)	
-    0x05, 0x09, // USAGE_PAGE (Button)	
-    0x19, 0x01, // USAGE_MINIMUM (Button 1)	
-    0x29, 0x03, // USAGE_MAXIMUM (Button 3)	
-    0x15, 0x01, // LOGICAL_MINIMUM (1)	
-    0x25, 0x03, // LOGICAL_MAXIMUM (3)	
-    0x75, 0x02, // REPORT_SIZE (2)	
-    0x81, 0x00, // INPUT (Data,Ary,Abs)	
-  0xC0,       // END_COLLECTI
-  0x15, 0x02, // LOGICAL_MINIMUM (2)	
-  0x81, 0x03, // INPUT (Cnst,Var,Abs)	
-0xC0,       // END_COLLECTI
-};
-
-__ALIGN_BEGIN static uint8_t HID_CONSUMER_ReportDesc[] __ALIGN_END =
-{
-  0x05, 0x0C,        // Usage Page (Consumer Devices)
-  0x09, 0x01,        // Usage (Consumer Control)
-  0xA1, 0x01,        // Collection (Application)
-  0x15, 0x00,        // Logical Minimum (0)
-  0x26, 0xFF, 0x03,  // Logical Maximum (1023) — позволяет использовать 16-битные коды
-  0x19, 0x00,        // Usage Minimum (0)
-  0x2A, 0xFF, 0x03,  // Usage Maximum (1023)
-  0x75, 0x10,        // Report Size (16 bits)
-  0x95, 0x01,        // Report Count (1)
-  0x81, 0x00,        // Input (Data, Array, Absolute)
-  0xC0               // End Collection
-};
-
-__ALIGN_BEGIN static uint8_t HID_CUSTOM_ReportDesc[] __ALIGN_END =
-{
-  0x05, 0x01,        // Usage Page (Generic Desktop)
-  0x09, 0x80,        // Usage (System Control)
-  0xA1, 0x01,        // Collection (Application)
-  0x15, 0x01,        // Logical Minimum (1)
-  0x26, 0xFF, 0x00,  // Logical Maximum (255)
-  0x19, 0x01,        // Usage Minimum (1)
-  0x29, 0xFF,        // Usage Maximum (255)
-  0x75, 0x08,        // Report Size (8)
-  0x95, 0x01,        // Report Count (1)
-  0x81, 0x00,        // Input (Data, Array, Absolute)
-  0xC0
-};
-
-__ALIGN_BEGIN static uint8_t HID_POWER_ReportDesc[] __ALIGN_END =
-{
-    0x05, 0x84,                    // USAGE_PAGE (Power Device)
-    0x09, 0x04,                    // USAGE (UPS)
-    0xa1, 0x01,                    // COLLECTION (Application)
-    0x09, 0x1e,                    //   USAGE (Flow)
-    0xa1, 0x02,                    //   COLLECTION (Logical)
-    0x85, 0x01,                    //     REPORT_ID (1)
-    0x09, 0x1f,                    //     USAGE (FlowID)
-    0x75, 0x04,                    //     REPORT_SIZE (4)
-    0x95, 0x01,                    //     REPORT_COUNT (1)
-    0x15, 0x00,                    //     LOGICAL_MINIMUM (0)
-    0x25, 0x0f,                    //     LOGICAL_MAXIMUM (15)
-    0xb1, 0x03,                    //     FEATURE (Cnst,Var,Abs)
-    0x75, 0x04,                    //     REPORT_SIZE (4)
-    0x95, 0x01,                    //     REPORT_COUNT (1)
-    0xb1, 0x03,                    //     FEATURE (Cnst,Var,Abs)
-    0x09, 0x01,                    //     USAGE (iName)
-    0x75, 0x08,                    //     REPORT_SIZE (8)
-    0x95, 0x01,                    //     REPORT_COUNT (1)
-    0x15, 0x00,                    //     LOGICAL_MINIMUM (0)
-    0x26, 0xff, 0x00,              //     LOGICAL_MAXIMUM (255)
-    0xb1, 0x03,                    //     FEATURE (Cnst,Var,Abs)
-    0x09, 0x40,                    //     USAGE (ConfigVoltage)
-    0x75, 0x08,                    //     REPORT_SIZE (8)
-    0x95, 0x01,                    //     REPORT_COUNT (1)
-    0x67, 0x21, 0xd1, 0xf0, 0x00,  //     UNIT (SI Lin:Volts)
-    0x55, 0x07,                    //     UNIT_EXPONENT (7)
-    0x15, 0x00,                    //     LOGICAL_MINIMUM (0)
-    0x26, 0xfa, 0x00,              //     LOGICAL_MAXIMUM (250)
-    0xb1, 0x03,                    //     FEATURE (Cnst,Var,Abs)
-    0x09, 0x42,                    //     USAGE (ConfigFrequency)
-    0x75, 0x08,                    //     REPORT_SIZE (8)
-    0x95, 0x01,                    //     REPORT_COUNT (1)
-    0x66, 0x01, 0xf0,              //     UNIT (SI Lin:Hertz)
-    0x55, 0x00,                    //     UNIT_EXPONENT (0)
-    0x15, 0x00,                    //     LOGICAL_MINIMUM (0)
-    0x25, 0x3c,                    //     LOGICAL_MAXIMUM (60)
-    0xb1, 0x03,                    //     FEATURE (Cnst,Var,Abs)
-    0x65, 0x00,                    //     UNIT (None)
-    0xc0,                          //   END_COLLECTION
-    0x09, 0x1e,                    //   USAGE (Flow)
-    0xa1, 0x02,                    //   COLLECTION (Logical)
-    0x85, 0x02,                    //     REPORT_ID (2)
-    0x09, 0x1f,                    //     USAGE (FlowID)
-    0x75, 0x04,                    //     REPORT_SIZE (4)
-    0x95, 0x01,                    //     REPORT_COUNT (1)
-    0x15, 0x00,                    //     LOGICAL_MINIMUM (0)
-    0x25, 0x0f,                    //     LOGICAL_MAXIMUM (15)
-    0xb1, 0x03,                    //     FEATURE (Cnst,Var,Abs)
-    0x75, 0x04,                    //     REPORT_SIZE (4)
-    0x95, 0x01,                    //     REPORT_COUNT (1)
-    0xb1, 0x03,                    //     FEATURE (Cnst,Var,Abs)
-    0x09, 0x01,                    //     USAGE (iName)
-    0x75, 0x08,                    //     REPORT_SIZE (8)
-    0x95, 0x01,                    //     REPORT_COUNT (1)
-    0x15, 0x00,                    //     LOGICAL_MINIMUM (0)
-    0x26, 0xff, 0x00,              //     LOGICAL_MAXIMUM (255)
-    0xb1, 0x03,                    //     FEATURE (Cnst,Var,Abs)
-    0x09, 0x40,                    //     USAGE (ConfigVoltage)
-    0x75, 0x10,                    //     REPORT_SIZE (16)
-    0x95, 0x01,                    //     REPORT_COUNT (1)
-    0x67, 0x21, 0xd1, 0xf0, 0x00,  //     UNIT (SI Lin:Volts)
-    0x55, 0x05,                    //     UNIT_EXPONENT (5)
-    0x15, 0x00,                    //     LOGICAL_MINIMUM (0)
-    0x27, 0xfe, 0xff, 0x00, 0x00,  //     LOGICAL_MAXIMUM (65534)
-    0xb1, 0x03,                    //     FEATURE (Cnst,Var,Abs)
-    0x09, 0x42,                    //     USAGE (ConfigFrequency)
-    0x75, 0x08,                    //     REPORT_SIZE (8)
-    0x95, 0x01,                    //     REPORT_COUNT (1)
-    0x66, 0x01, 0xf0,              //     UNIT (SI Lin:Hertz)
-    0x55, 0x00,                    //     UNIT_EXPONENT (0)
-    0x15, 0x00,                    //     LOGICAL_MINIMUM (0)
-    0x25, 0x60,                    //     LOGICAL_MAXIMUM (96)
-    0xb1, 0x03,                    //     FEATURE (Cnst,Var,Abs)
-    0x65, 0x00,                    //     UNIT (None)
-    0xc0,                          //   END_COLLECTION
-    0x09, 0x1e,                    //   USAGE (Flow)
-    0xa1, 0x02,                    //   COLLECTION (Logical)
-    0x75, 0x04,                    //     REPORT_SIZE (4)
-    0x95, 0x01,                    //     REPORT_COUNT (1)
-    0x15, 0x00,                    //     LOGICAL_MINIMUM (0)
-    0x25, 0x0f,                    //     LOGICAL_MAXIMUM (15)
-    0xb1, 0x03,                    //     FEATURE (Cnst,Var,Abs)
-    0x75, 0x04,                    //     REPORT_SIZE (4)
-    0x95, 0x01,                    //     REPORT_COUNT (1)
-    0xb1, 0x03,                    //     FEATURE (Cnst,Var,Abs)
-    0x09, 0x01,                    //     USAGE (iName)
-    0x75, 0x08,                    //     REPORT_SIZE (8)
-    0x95, 0x01,                    //     REPORT_COUNT (1)
-    0x15, 0x00,                    //     LOGICAL_MINIMUM (0)
-    0x26, 0xff, 0x00,              //     LOGICAL_MAXIMUM (255)
-    0xb1, 0x03,                    //     FEATURE (Cnst,Var,Abs)
-    0x09, 0x40,                    //     USAGE (ConfigVoltage)
-    0x75, 0x08,                    //     REPORT_SIZE (8)
-    0x95, 0x01,                    //     REPORT_COUNT (1)
-    0x67, 0x21, 0xd1, 0xf0, 0x00,  //     UNIT (SI Lin:Volts)
-    0x55, 0x07,                    //     UNIT_EXPONENT (7)
-    0x15, 0x00,                    //     LOGICAL_MINIMUM (0)
-    0x26, 0xfa, 0x00,              //     LOGICAL_MAXIMUM (250)
-    0xb1, 0x03,                    //     FEATURE (Cnst,Var,Abs)
-    0x09, 0x42,                    //     USAGE (ConfigFrequency)
-    0x75, 0x08,                    //     REPORT_SIZE (8)
-    0x95, 0x01,                    //     REPORT_COUNT (1)
-    0x66, 0x01, 0xf0,              //     UNIT (SI Lin:Hertz)
-    0x55, 0x00,                    //     UNIT_EXPONENT (0)
-    0x15, 0x00,                    //     LOGICAL_MINIMUM (0)
-    0x25, 0x3c,                    //     LOGICAL_MAXIMUM (60)
-    0xb1, 0x03,                    //     FEATURE (Cnst,Var,Abs)
-    0x09, 0x43,                    //     USAGE (ConfigApparentPower)
-    0x75, 0x10,                    //     REPORT_SIZE (16)
-    0x95, 0x01,                    //     REPORT_COUNT (1)
-    0x66, 0x21, 0xd1,              //     UNIT (SI Lin:Power)
-    0x55, 0x07,                    //     UNIT_EXPONENT (7)
-    0x15, 0x00,                    //     LOGICAL_MINIMUM (0)
-    0x27, 0xfe, 0xff, 0x00, 0x00,  //     LOGICAL_MAXIMUM (65534)
-    0xb1, 0x03,                    //     FEATURE (Cnst,Var,Abs)
-    0x65, 0x00,                    //     UNIT (None)
-    0xc0,                          //   END_COLLECTION
-    0x09, 0x10,                    //   USAGE (BatterySystem)
-    0xa1, 0x02,                    //   COLLECTION (Logical)
-    0x85, 0x04,                    //     REPORT_ID (4)
-    0x09, 0x11,                    //     USAGE (BatterySystemID)
-    0x75, 0x04,                    //     REPORT_SIZE (4)
-    0x95, 0x01,                    //     REPORT_COUNT (1)
-    0x15, 0x00,                    //     LOGICAL_MINIMUM (0)
-    0x25, 0x0f,                    //     LOGICAL_MAXIMUM (15)
-    0xb1, 0x03,                    //     FEATURE (Cnst,Var,Abs)
-    0x75, 0x04,                    //     REPORT_SIZE (4)
-    0x95, 0x01,                    //     REPORT_COUNT (1)
-    0xb1, 0x03,                    //     FEATURE (Cnst,Var,Abs)
-    0x09, 0x1a,                    //     USAGE (Input)
-    0xa1, 0x02,                    //     COLLECTION (Logical)
-    0x09, 0x1b,                    //       USAGE (InputID)
-    0x09, 0x1f,                    //       USAGE (FlowID)
-    0x75, 0x04,                    //       REPORT_SIZE (4)
-    0x95, 0x02,                    //       REPORT_COUNT (2)
-    0x15, 0x00,                    //       LOGICAL_MINIMUM (0)
-    0x25, 0x0f,                    //       LOGICAL_MAXIMUM (15)
-    0xb1, 0x03,                    //       FEATURE (Cnst,Var,Abs)
-    0x09, 0x02,                    //       USAGE (PresentStatus)
-    0xa1, 0x02,                    //       COLLECTION (Logical)
-    0x09, 0x6d,                    //         USAGE (Used)
-    0x09, 0x61,                    //         USAGE (Good)
-    0x75, 0x01,                    //         REPORT_SIZE (1)
-    0x95, 0x02,                    //         REPORT_COUNT (2)
-    0x15, 0x00,                    //         LOGICAL_MINIMUM (0)
-    0x25, 0x01,                    //         LOGICAL_MAXIMUM (1)
-    0xb1, 0x03,                    //         FEATURE (Cnst,Var,Abs)
-    0xc0,                          //       END_COLLECTION
-    0x09, 0x03,                    //       USAGE (ChangedStatus)
-    0xa1, 0x02,                    //       COLLECTION (Logical)
-    0x09, 0x6d,                    //         USAGE (Used)
-    0x09, 0x61,                    //         USAGE (Good)
-    0x75, 0x02,                    //         REPORT_SIZE (2)
-    0x95, 0x02,                    //         REPORT_COUNT (2)
-    0x15, 0x00,                    //         LOGICAL_MINIMUM (0)
-    0x25, 0x01,                    //         LOGICAL_MAXIMUM (1)
-    0x81, 0x02,                    //         INPUT (Data,Var,Abs)
-    0xc0,                          //       END_COLLECTION
-    0xc0,                          //     END_COLLECTION
-    0x09, 0x14,                    //     USAGE (Charger)
-    0xa1, 0x02,                    //     COLLECTION (Logical)
-    0x85, 0x05,                    //       REPORT_ID (5)
-    0x09, 0x15,                    //       USAGE (ChargerID)
-    0x75, 0x04,                    //       REPORT_SIZE (4)
-    0x95, 0x01,                    //       REPORT_COUNT (1)
-    0x15, 0x00,                    //       LOGICAL_MINIMUM (0)
-    0x25, 0x0f,                    //       LOGICAL_MAXIMUM (15)
-    0xb1, 0x03,                    //       FEATURE (Cnst,Var,Abs)
-    0xc0,                          //     END_COLLECTION
-    0x09, 0x1c,                    //     USAGE (Output)
-    0xa1, 0x02,                    //     COLLECTION (Logical)
-    0x09, 0x1d,                    //       USAGE (OutputID)
-    0x09, 0x1f,                    //       USAGE (FlowID)
-    0x75, 0x04,                    //       REPORT_SIZE (4)
-    0x95, 0x02,                    //       REPORT_COUNT (2)
-    0x15, 0x00,                    //       LOGICAL_MINIMUM (0)
-    0x25, 0x0f,                    //       LOGICAL_MAXIMUM (15)
-    0xb1, 0x03,                    //       FEATURE (Cnst,Var,Abs)
-    0xc0,                          //     END_COLLECTION
-    0x09, 0x12,                    //     USAGE (Battery)
-    0xa1, 0x02,                    //     COLLECTION (Logical)
-    0x85, 0x06,                    //       REPORT_ID (6)
-    0x09, 0x13,                    //       USAGE (BatteryID)
-    0x85, 0x04,                    //       REPORT_ID (4)
-    0x95, 0x01,                    //       REPORT_COUNT (1)
-    0x15, 0x00,                    //       LOGICAL_MINIMUM (0)
-    0x25, 0x0f,                    //       LOGICAL_MAXIMUM (15)
-    0xb1, 0x03,                    //       FEATURE (Cnst,Var,Abs)
-    0x05, 0x85,                    //       USAGE_PAGE (Battery System)
-    0x09, 0x2c,                    //       USAGE (CapacityMode)
-    0x75, 0x01,                    //       REPORT_SIZE (1)
-    0x95, 0x01,                    //       REPORT_COUNT (1)
-    0x15, 0x00,                    //       LOGICAL_MINIMUM (0)
-    0x25, 0x01,                    //       LOGICAL_MAXIMUM (1)
-    0xb1, 0x03,                    //       FEATURE (Cnst,Var,Abs)
-    0x75, 0x03,                    //       REPORT_SIZE (3)
-    0x95, 0x01,                    //       REPORT_COUNT (1)
-    0xb1, 0x03,                    //       FEATURE (Cnst,Var,Abs)
-    0x09, 0x83,                    //       USAGE (DesignCapacity)
-    0x75, 0x18,                    //       REPORT_SIZE (24)
-    0x95, 0x01,                    //       REPORT_COUNT (1)
-    0x67, 0x01, 0x10, 0x10, 0x00,  //       UNIT (SI Lin:Battery Capacity)
-    0x55, 0x00,                    //       UNIT_EXPONENT (0)
-    0x15, 0x00,                    //       LOGICAL_MINIMUM (0)
-    0x27, 0xfe, 0xff, 0xff, 0x00,  //       LOGICAL_MAXIMUM (16777214)
-    0xb1, 0x03,                    //       FEATURE (Cnst,Var,Abs)
-    0x05, 0x84,                    //       USAGE_PAGE (Power Device)
-    0x09, 0x40,                    //       USAGE (ConfigVoltage)
-    0x75, 0x10,                    //       REPORT_SIZE (16)
-    0x95, 0x01,                    //       REPORT_COUNT (1)
-    0x67, 0x21, 0xd1, 0xf0, 0x00,  //       UNIT (SI Lin:Volts)
-    0x55, 0x05,                    //       UNIT_EXPONENT (5)
-    0x15, 0x00,                    //       LOGICAL_MINIMUM (0)
-    0x27, 0xfe, 0xff, 0x00, 0x00,  //       LOGICAL_MAXIMUM (65534)
-    0xb1, 0x03,                    //       FEATURE (Cnst,Var,Abs)
-    0x05, 0x85,                    //       USAGE_PAGE (Battery System)
-    0x09, 0x29,                    //       USAGE (RemainingCapacityLimit)
-    0x75, 0x24,                    //       REPORT_SIZE (36)
-    0x95, 0x01,                    //       REPORT_COUNT (1)
-    0x67, 0x01, 0x10, 0x10, 0x00,  //       UNIT (SI Lin:Battery Capacity)
-    0x55, 0x00,                    //       UNIT_EXPONENT (0)
-    0x15, 0x00,                    //       LOGICAL_MINIMUM (0)
-    0x27, 0xfe, 0xff, 0xff, 0x00,  //       LOGICAL_MAXIMUM (16777214)
-    0xb1, 0x03,                    //       FEATURE (Cnst,Var,Abs)
-    0x65, 0x00,                    //       UNIT (None)
-    0x05, 0x84,                    //       USAGE_PAGE (Power Device)
-    0x09, 0x02,                    //       USAGE (PresentStatus)
-    0xa1, 0x02,                    //       COLLECTION (Logical)
-    0x05, 0x85,                    //         USAGE_PAGE (Battery System)
-    0x0b, 0x61, 0x00, 0x84, 0x00,  //         USAGE (Power Device:Good)
-    0x09, 0x42,                    //         USAGE (BelowRemainingCapacityLimit)
-    0x09, 0x44,                    //         USAGE (Charging)
-    0x09, 0x45,                    //         USAGE (Discharging)
-    0x75, 0x01,                    //         REPORT_SIZE (1)
-    0x95, 0x04,                    //         REPORT_COUNT (4)
-    0x15, 0x00,                    //         LOGICAL_MINIMUM (0)
-    0x25, 0x01,                    //         LOGICAL_MAXIMUM (1)
-    0xb1, 0x02,                    //         FEATURE (Data,Var,Abs)
-    0xc0,                          //       END_COLLECTION
-    0x05, 0x84,                    //       USAGE_PAGE (Power Device)
-    0x09, 0x03,                    //       USAGE (ChangedStatus)
-    0xa1, 0x02,                    //       COLLECTION (Logical)
-    0x05, 0x85,                    //         USAGE_PAGE (Battery System)
-    0x0b, 0x61, 0x00, 0x84, 0x00,  //         USAGE (Power Device:Good)
-    0x09, 0x42,                    //         USAGE (BelowRemainingCapacityLimit)
-    0x09, 0x44,                    //         USAGE (Charging)
-    0x09, 0x45,                    //         USAGE (Discharging)
-    0x75, 0x02,                    //         REPORT_SIZE (2)
-    0x95, 0x04,                    //         REPORT_COUNT (4)
-    0x15, 0x00,                    //         LOGICAL_MINIMUM (0)
-    0x25, 0x01,                    //         LOGICAL_MAXIMUM (1)
-    0x81, 0x02,                    //         INPUT (Data,Var,Abs)
-    0xc0,                          //       END_COLLECTION
-    0xc0,                          //     END_COLLECTION
-    0xc0,                          //   END_COLLECTION
-    0x05, 0x84,                    //   USAGE_PAGE (Power Device)
-    0x09, 0x16,                    //   USAGE (PowerConverter)
-    0xa1, 0x02,                    //   COLLECTION (Logical)
-    0x85, 0x08,                    //     REPORT_ID (8)
-    0x09, 0x17,                    //     USAGE (PowerConverterID)
-    0x75, 0x04,                    //     REPORT_SIZE (4)
-    0x95, 0x01,                    //     REPORT_COUNT (1)
-    0x15, 0x00,                    //     LOGICAL_MINIMUM (0)
-    0x25, 0x0f,                    //     LOGICAL_MAXIMUM (15)
-    0xb1, 0x03,                    //     FEATURE (Cnst,Var,Abs)
-    0x09, 0x1a,                    //     USAGE (Input)
-    0xa1, 0x02,                    //     COLLECTION (Logical)
-    0x09, 0x1b,                    //       USAGE (InputID)
-    0x09, 0x1f,                    //       USAGE (FlowID)
-    0x75, 0x04,                    //       REPORT_SIZE (4)
-    0x95, 0x02,                    //       REPORT_COUNT (2)
-    0x15, 0x00,                    //       LOGICAL_MINIMUM (0)
-    0x25, 0x0f,                    //       LOGICAL_MAXIMUM (15)
-    0xb1, 0x03,                    //       FEATURE (Cnst,Var,Abs)
-    0x09, 0x02,                    //       USAGE (PresentStatus)
-    0xa1, 0x02,                    //       COLLECTION (Logical)
-    0x09, 0x6d,                    //         USAGE (Used)
-    0x09, 0x61,                    //         USAGE (Good)
-    0x75, 0x01,                    //         REPORT_SIZE (1)
-    0x95, 0x02,                    //         REPORT_COUNT (2)
-    0x15, 0x00,                    //         LOGICAL_MINIMUM (0)
-    0x25, 0x01,                    //         LOGICAL_MAXIMUM (1)
-    0xb1, 0x02,                    //         FEATURE (Data,Var,Abs)
-    0xc0,                          //       END_COLLECTION
-    0x09, 0x03,                    //       USAGE (ChangedStatus)
-    0xa1, 0x02,                    //       COLLECTION (Logical)
-    0x09, 0x6d,                    //         USAGE (Used)
-    0x09, 0x61,                    //         USAGE (Good)
-    0x75, 0x02,                    //         REPORT_SIZE (2)
-    0x95, 0x02,                    //         REPORT_COUNT (2)
-    0x15, 0x00,                    //         LOGICAL_MINIMUM (0)
-    0x25, 0x01,                    //         LOGICAL_MAXIMUM (1)
-    0x81, 0x02,                    //         INPUT (Data,Var,Abs)
-    0xc0,                          //       END_COLLECTION
-    0xc0,                          //     END_COLLECTION
-    0x09, 0x1c,                    //     USAGE (Output)
-    0xa1, 0x02,                    //     COLLECTION (Logical)
-    0x85, 0x09,                    //       REPORT_ID (9)
-    0x09, 0x1d,                    //       USAGE (OutputID)
-    0x09, 0x1f,                    //       USAGE (FlowID)
-    0x75, 0x04,                    //       REPORT_SIZE (4)
-    0x95, 0x02,                    //       REPORT_COUNT (2)
-    0x15, 0x00,                    //       LOGICAL_MINIMUM (0)
-    0x25, 0x0f,                    //       LOGICAL_MAXIMUM (15)
-    0xb1, 0x03,                    //       FEATURE (Cnst,Var,Abs)
-    0x09, 0x35,                    //       USAGE (PercentLoad)
-    0x75, 0x08,                    //       REPORT_SIZE (8)
-    0x95, 0x01,                    //       REPORT_COUNT (1)
-    0x15, 0x00,                    //       LOGICAL_MINIMUM (0)
-    0x26, 0xff, 0x00,              //       LOGICAL_MAXIMUM (255)
-    0x81, 0x02,                    //       INPUT (Data,Var,Abs)
-    0x09, 0x02,                    //       USAGE (PresentStatus)
-    0xa1, 0x02,                    //       COLLECTION (Logical)
-    0x09, 0x6d,                    //         USAGE (Used)
-    0x09, 0x61,                    //         USAGE (Good)
-    0x09, 0x64,                    //         USAGE (FrequencyOutOfRange)
-    0x09, 0x69,                    //         USAGE (ShutdownImminent)
-    0x75, 0x01,                    //         REPORT_SIZE (1)
-    0x95, 0x04,                    //         REPORT_COUNT (4)
-    0x15, 0x00,                    //         LOGICAL_MINIMUM (0)
-    0x25, 0x01,                    //         LOGICAL_MAXIMUM (1)
-    0xb1, 0x02,                    //         FEATURE (Data,Var,Abs)
-    0xc0,                          //       END_COLLECTION
-    0x09, 0x03,                    //       USAGE (ChangedStatus)
-    0xa1, 0x02,                    //       COLLECTION (Logical)
-    0x09, 0x6d,                    //         USAGE (Used)
-    0x09, 0x61,                    //         USAGE (Good)
-    0x09, 0x64,                    //         USAGE (FrequencyOutOfRange)
-    0x09, 0x69,                    //         USAGE (ShutdownImminent)
-    0x75, 0x02,                    //         REPORT_SIZE (2)
-    0x95, 0x04,                    //         REPORT_COUNT (4)
-    0x15, 0x00,                    //         LOGICAL_MINIMUM (0)
-    0x25, 0x01,                    //         LOGICAL_MAXIMUM (1)
-    0x81, 0x02,                    //         INPUT (Data,Var,Abs)
-    0xc0,                          //       END_COLLECTION
-    0xc0,                          //     END_COLLECTION
-    0x09, 0x1a,                    //     USAGE (Input)
-    0xa1, 0x02,                    //     COLLECTION (Logical)
-    0x85, 0x0a,                    //       REPORT_ID (10)
-    0x09, 0x1b,                    //       USAGE (InputID)
-    0x09, 0x1f,                    //       USAGE (FlowID)
-    0x75, 0x04,                    //       REPORT_SIZE (4)
-    0x95, 0x02,                    //       REPORT_COUNT (2)
-    0x15, 0x00,                    //       LOGICAL_MINIMUM (0)
-    0x25, 0x0f,                    //       LOGICAL_MAXIMUM (15)
-    0xb1, 0x03,                    //       FEATURE (Cnst,Var,Abs)
-    0x09, 0x02,                    //       USAGE (PresentStatus)
-    0xa1, 0x02,                    //       COLLECTION (Logical)
-    0x09, 0x6d,                    //         USAGE (Used)
-    0x09, 0x61,                    //         USAGE (Good)
-    0x75, 0x01,                    //         REPORT_SIZE (1)
-    0x95, 0x02,                    //         REPORT_COUNT (2)
-    0x15, 0x00,                    //         LOGICAL_MINIMUM (0)
-    0x25, 0x01,                    //         LOGICAL_MAXIMUM (1)
-    0xb1, 0x02,                    //         FEATURE (Data,Var,Abs)
-    0xc0,                          //       END_COLLECTION
-    0x09, 0x03,                    //       USAGE (ChangedStatus)
-    0xa1, 0x02,                    //       COLLECTION (Logical)
-    0x09, 0x6d,                    //         USAGE (Used)
-    0x09, 0x61,                    //         USAGE (Good)
-    0x75, 0x02,                    //         REPORT_SIZE (2)
-    0x95, 0x02,                    //         REPORT_COUNT (2)
-    0x15, 0x00,                    //         LOGICAL_MINIMUM (0)
-    0x25, 0x01,                    //         LOGICAL_MAXIMUM (1)
-    0x81, 0x02,                    //         INPUT (Data,Var,Abs)
-    0xc0,                          //       END_COLLECTION
-    0xc0,                          //     END_COLLECTION
-    0xc0,                          //   END_COLLECTION
-    0x09, 0x24,                    //   USAGE (Sink)
-    0xa1, 0x02,                    //   COLLECTION (Logical)
-    0x85, 0x0b,                    //     REPORT_ID (11)
-    0x09, 0x25,                    //     USAGE (SinkID)
-    0x09, 0x1f,                    //     USAGE (FlowID)
-    0x09, 0x1d,                    //     USAGE (OutputID)
-    0x75, 0x04,                    //     REPORT_SIZE (4)
-    0x95, 0x03,                    //     REPORT_COUNT (3)
-    0x15, 0x00,                    //     LOGICAL_MINIMUM (0)
-    0x25, 0x0f,                    //     LOGICAL_MAXIMUM (15)
-    0xb1, 0x03,                    //     FEATURE (Cnst,Var,Abs)
-    0x09, 0x1b,                    //     USAGE (InputID)
-    0x09, 0x13,                    //     USAGE (BatteryID)
-    0x75, 0x04,                    //     REPORT_SIZE (4)
-    0x95, 0x04,                    //     REPORT_COUNT (4)
-    0x15, 0x00,                    //     LOGICAL_MINIMUM (0)
-    0x25, 0x0f,                    //     LOGICAL_MAXIMUM (15)
-    0x81, 0x02,                    //     INPUT (Data,Var,Abs)
-    0x09, 0x35,                    //     USAGE (PercentLoad)
-    0x75, 0x08,                    //     REPORT_SIZE (8)
-    0x95, 0x01,                    //     REPORT_COUNT (1)
-    0x15, 0x00,                    //     LOGICAL_MINIMUM (0)
-    0x26, 0xff, 0x00,              //     LOGICAL_MAXIMUM (255)
-    0x81, 0x02,                    //     INPUT (Data,Var,Abs)
-    0x05, 0x85,                    //     USAGE_PAGE (Battery System)
-    0x09, 0x66,                    //     USAGE (RemainingCapacity)
-    0x75, 0x18,                    //     REPORT_SIZE (24)
-    0x95, 0x01,                    //     REPORT_COUNT (1)
-    0x67, 0x01, 0x10, 0x10, 0x00,  //     UNIT (SI Lin:Battery Capacity)
-    0x55, 0x00,                    //     UNIT_EXPONENT (0)
-    0x15, 0x00,                    //     LOGICAL_MINIMUM (0)
-    0x27, 0xfe, 0xff, 0xff, 0x00,  //     LOGICAL_MAXIMUM (16777214)
-    0x81, 0x02,                    //     INPUT (Data,Var,Abs)
-    0x65, 0x00,                    //     UNIT (None)
-    0x09, 0x42,                    //     USAGE (BelowRemainingCapacityLimit)
-    0x09, 0x44,                    //     USAGE (Charging)
-    0x09, 0x45,                    //     USAGE (Discharging)
-    0x0b, 0x64, 0x00, 0x84, 0x00,  //     USAGE (Power Device:FrequencyOutOfRange)
-    0x0b, 0x69, 0x00, 0x84, 0x00,  //     USAGE (Power Device:ShutdownImminent)
-    0x75, 0x02,                    //     REPORT_SIZE (2)
-    0x95, 0x05,                    //     REPORT_COUNT (5)
-    0x15, 0x00,                    //     LOGICAL_MINIMUM (0)
-    0x25, 0x01,                    //     LOGICAL_MAXIMUM (1)
-    0x81, 0x02,                    //     INPUT (Data,Var,Abs)
-    0xc0,                          //   END_COLLECTION
-    0xc0                           // END_COLLECTION
+	// ============ System Control ============
+	0x05, 0x01,        // Usage Page (Generic Desktop)
+	0x09, 0x80,        // Usage (System Control)
+	0xA1, 0x01,        // Collection (Application)
+		0x85, 0x04,        // Report ID (3)
+		0x15, 0x00,        // Logical Minimum (0)
+		0x26, 0xFF, 0x00,  // Logical Maximum (255)
+		0x19, 0x00,        // Usage Minimum (0)
+		0x29, 0xFF,        // Usage Maximum (255)
+		0x75, 0x08,        // Report Size (8)
+		0x95, 0x01,        // Report Count (1)
+		0x81, 0x00,        // Input (Data,Array,Abs)
+	0xC0,
 };
 
 /* Размеры дескрипторов ------------------------------------------------------*/
-#define KEYBOARD_REPORT_DESC_SIZE  (sizeof(HID_KEYBOARD_ReportDesc))
-#define MOUSE_REPORT_DESC_SIZE     (sizeof(HID_MOUSE_ReportDesc))
-#define CONSUMER_REPORT_DESC_SIZE  (sizeof(HID_CONSUMER_ReportDesc))
-#define REMOTE_REPORT_DESC_SIZE    (sizeof(HID_REMOTE_ReportDesc))
-#define CUSTOM_REPORT_DESC_SIZE    (sizeof(HID_CUSTOM_ReportDesc))
-#define CUSTOM_POWER_DESC_SIZE     (sizeof(HID_POWER_ReportDesc))
-
-#define INTERFACE_KEYBOARD_NUMBER 0
-#define INTERFACE_MOUSE_NUMBER    (INTERFACE_KEYBOARD_NUMBER + HID_INTERFACE_KEYBOARD)
-#define INTERFACE_CONSUMER_NUMBER (INTERFACE_MOUSE_NUMBER    + HID_INTERFACE_MOUSE)
-#define INTERFACE_REMOTE_NUMBER   (INTERFACE_CONSUMER_NUMBER + HID_INTERFACE_CONSUMER)
-#define INTERFACE_CUSTOM_NUMBER   (INTERFACE_REMOTE_NUMBER   + HID_INTERFACE_REMOTE)
-#define INTERFACE_POWER_NUMBER    (INTERFACE_CUSTOM_NUMBER   + HID_INTERFACE_CUSTOM)
+#define COMPOSITE_REPORT_DESC_SIZE  (sizeof(HID_Composite_ReportDesc))
 
 /* Configuration Descriptor --------------------------------------------------*/
 // Дескриптор конфигурации (описывает возможности устройства)
@@ -680,13 +151,12 @@ __ALIGN_BEGIN static uint8_t USBD_HID_CfgDesc[USB_HID_CONFIG_DESC_SIZ] __ALIGN_E
 	/*  8 byte*/ 0xA0,	//bmAttributes - признак того, что устройство будет питаться от шины USB
 	/*  9 byte*/ 0xFA,	//MaxPower (500 mA)
 
-#if HID_INTERFACE_KEYBOARD
-	// ============ INTERFACE 0: KEYBOARD ============
+	// ============ INTERFACE 0: COMPOSITE ============
 
 		// Interface Descriptor (9 byte)
 		/*  1 byte*/ 0x09,	//bLength: Interface Descriptor size
 		/*  2 byte*/ USB_DESC_TYPE_INTERFACE, //bDescriptorType: Interface descriptor type
-		/*  3 byte*/ INTERFACE_KEYBOARD_NUMBER,	//bInterfaceNumber: Number of Interface
+		/*  3 byte*/ 0x00,	//bInterfaceNumber: Number of Interface
 		/*  4 byte*/ 0x00,	//bAlternateSetting: Alternate setting
 		/*  5 byte*/ 0x01,	//bNumEndpoints
 		/*  6 byte*/ 0x03,	//bInterfaceClass: HID
@@ -701,146 +171,15 @@ __ALIGN_BEGIN static uint8_t USBD_HID_CfgDesc[USB_HID_CONFIG_DESC_SIZ] __ALIGN_E
 			/*  5 byte*/ 0x00,	//bCountryCode: Hardware target country
 			/*  6 byte*/ 0x01,	//bNumDescriptors: Number of HID class descriptors to follow
 			/*  7 byte*/ 0x22,	//bDescriptorType
-			/*8-9 byte*/ LOBYTE(KEYBOARD_REPORT_DESC_SIZE), HIBYTE(KEYBOARD_REPORT_DESC_SIZE), // wItemLength: Total length of Report descriptor
+			/*8-9 byte*/ LOBYTE(COMPOSITE_REPORT_DESC_SIZE), HIBYTE(COMPOSITE_REPORT_DESC_SIZE), // wItemLength: Total length of Report descriptor
 
 				// Endpoint Descriptor (7 byte)
 				/*  1 byte*/ 0x07,	//bLength: Endpoint Descriptor size
 				/*  2 byte*/ USB_DESC_TYPE_ENDPOINT,	//bDescriptorType: ENDPOINT
-				/*  3 byte*/ HID_KEYBOARD_EP,	//bEndpointAddress: Endpoint Address (IN)
+				/*  3 byte*/ HID_COMPOSITE_EP,	//bEndpointAddress: Endpoint Address (IN)
 				/*  4 byte*/ 0x03,	//bmAttributes: Interrupt endpoint
-				/*5-6 byte*/ LOBYTE(HID_KEYBOARD_EP_SIZE), HIBYTE(HID_KEYBOARD_EP_SIZE),	//wMaxPacketSize
+				/*5-6 byte*/ LOBYTE(HID_COMPOSITE_EP_SIZE), HIBYTE(HID_COMPOSITE_EP_SIZE),	//wMaxPacketSize
 				/*  7 byte*/ HID_FS_BINTERVAL,	//bInterval: Polling Interval (10 ms)
-	#endif
-
-	#if HID_INTERFACE_MOUSE
-	// ============ INTERFACE 1: MOUSE ============
-
-		// Interface Descriptor (9 byte)
-		/*  1 byte*/ 0x09,	//bLength: Interface Descriptor size
-		/*  2 byte*/ USB_DESC_TYPE_INTERFACE, //bDescriptorType: Interface descriptor type
-		/*  3 byte*/ INTERFACE_MOUSE_NUMBER,	//bInterfaceNumber: Number of Interface
-		/*  4 byte*/ 0x00,	//bAlternateSetting: Alternate setting
-		/*  5 byte*/ 0x01,	//bNumEndpoints
-		/*  6 byte*/ 0x03,	//bInterfaceClass: HID
-		/*  7 byte*/ 0x01,	//bInterfaceSubClass : 1=BOOT, 0=no boot
-		/*  8 byte*/ 0x02,	//nInterfaceProtocol : 0=none, 1=keyboard, 2=mouse
-		/*  9 byte*/ 0x00,	//iInterface: Index of string descriptor
-
-			// HID Descriptor (9 byte)
-			/*  1 byte*/ 0x09,	//bLength: HID Descriptor size
-			/*  2 byte*/ HID_DESCRIPTOR_TYPE,	//bDescriptorType: HID
-			/*3-4 byte*/ 0x10, 0x01,	//bcdHID: HID Class Spec release number
-			/*  5 byte*/ 0x00,	//bCountryCode: Hardware target country
-			/*  6 byte*/ 0x01,	//bNumDescriptors: Number of HID class descriptors to follow
-			/*  7 byte*/ 0x22,	//bDescriptorType
-			/*8-9 byte*/ LOBYTE(MOUSE_REPORT_DESC_SIZE), HIBYTE(MOUSE_REPORT_DESC_SIZE), // wItemLength: Total length of Report descriptor
-
-				// Endpoint Descriptor (7 byte)
-				/*  1 byte*/ 0x07,	//bLength: Endpoint Descriptor size
-				/*  2 byte*/ USB_DESC_TYPE_ENDPOINT,	//bDescriptorType: ENDPOINT
-				/*  3 byte*/ HID_MOUSE_EP,	//bEndpointAddress: Endpoint Address (IN)
-				/*  4 byte*/ 0x03,	//bmAttributes: Interrupt endpoint
-				/*5-6 byte*/ LOBYTE(HID_MOUSE_EP_SIZE), HIBYTE(HID_MOUSE_EP_SIZE),	//wMaxPacketSize
-				/*  7 byte*/ HID_FS_BINTERVAL,	//bInterval: Polling Interval (10 ms)
-	#endif
-
-	#if HID_INTERFACE_CONSUMER
-	// ============ INTERFACE 2: CONSUMER CONTROL ============
-
-		// Interface Descriptor (9 byte)
-		/*  1 byte*/ 0x09,	//bLength: Interface Descriptor size
-		/*  2 byte*/ USB_DESC_TYPE_INTERFACE, //bDescriptorType: Interface descriptor type
-		/*  3 byte*/ INTERFACE_CONSUMER_NUMBER,	//bInterfaceNumber: Number of Interface
-		/*  4 byte*/ 0x00,	//bAlternateSetting: Alternate setting
-		/*  5 byte*/ 0x01,	//bNumEndpoints
-		/*  6 byte*/ 0x03,	//bInterfaceClass: HID
-		/*  7 byte*/ 0x00,	//bInterfaceSubClass : 1=BOOT, 0=no boot
-		/*  8 byte*/ 0x00,	//nInterfaceProtocol : 0=none, 1=keyboard, 2=mouse
-		/*  9 byte*/ 0x00,	//iInterface: Index of string descriptor
-
-			// HID Descriptor (9 byte)
-			/*  1 byte*/ 0x09,	//bLength: HID Descriptor size
-			/*  2 byte*/ HID_DESCRIPTOR_TYPE,	//bDescriptorType: HID
-			/*3-4 byte*/ 0x10, 0x01,	//bcdHID: HID Class Spec release number
-			/*  5 byte*/ 0x00,	//bCountryCode: Hardware target country
-			/*  6 byte*/ 0x01,	//bNumDescriptors: Number of HID class descriptors to follow
-			/*  7 byte*/ 0x22,	//bDescriptorType
-			/*8-9 byte*/ LOBYTE(CONSUMER_REPORT_DESC_SIZE), HIBYTE(CONSUMER_REPORT_DESC_SIZE), // wItemLength: Total length of Report descriptor
-
-				// Endpoint Descriptor (7 byte)
-				/*  1 byte*/ 0x07,	//bLength: Endpoint Descriptor size
-				/*  2 byte*/ USB_DESC_TYPE_ENDPOINT,	//bDescriptorType: ENDPOINT
-				/*  3 byte*/ HID_CONSUMER_EP,	//bEndpointAddress: Endpoint Address (IN)
-				/*  4 byte*/ 0x03,	//bmAttributes: Interrupt endpoint
-				/*5-6 byte*/ LOBYTE(HID_CONSUMER_EP_SIZE), HIBYTE(HID_CONSUMER_EP_SIZE),	//wMaxPacketSize
-				/*  7 byte*/ HID_FS_BINTERVAL,	//bInterval: Polling Interval (10 ms)
-	#endif
-	
-	#if HID_INTERFACE_REMOTE
-	// ============ INTERFACE 3: CUSTOM CONTROL ============
-
-		// Interface Descriptor (9 byte)
-		/*  1 byte*/ 0x09,	//bLength: Interface Descriptor size
-		/*  2 byte*/ USB_DESC_TYPE_INTERFACE, //bDescriptorType: Interface descriptor type
-		/*  3 byte*/ INTERFACE_REMOTE_NUMBER,	//bInterfaceNumber: Number of Interface
-		/*  4 byte*/ 0x00,	//bAlternateSetting: Alternate setting
-		/*  5 byte*/ 0x01,	//bNumEndpoints
-		/*  6 byte*/ 0x03,	//bInterfaceClass: HID
-		/*  7 byte*/ 0x00,	//bInterfaceSubClass : 1=BOOT, 0=no boot
-		/*  8 byte*/ 0x00,	//nInterfaceProtocol : 0=none, 1=keyboard, 2=mouse
-		/*  9 byte*/ 0x00,	//iInterface: Index of string descriptor
-
-			// HID Descriptor (9 byte)
-			/*  1 byte*/ 0x09,	//bLength: HID Descriptor size
-			/*  2 byte*/ HID_DESCRIPTOR_TYPE,	//bDescriptorType: HID
-			/*3-4 byte*/ 0x10, 0x01,	//bcdHID: HID Class Spec release number
-			/*  5 byte*/ 0x00,	//bCountryCode: Hardware target country
-			/*  6 byte*/ 0x01,	//bNumDescriptors: Number of HID class descriptors to follow
-			/*  7 byte*/ 0x22,	//bDescriptorType
-			/*8-9 byte*/ LOBYTE(REMOTE_REPORT_DESC_SIZE), HIBYTE(REMOTE_REPORT_DESC_SIZE), // wItemLength: Total length of Report descriptor
-
-				// Endpoint Descriptor (7 byte)
-				/*  1 byte*/ 0x07,	//bLength: Endpoint Descriptor size
-				/*  2 byte*/ USB_DESC_TYPE_ENDPOINT,	//bDescriptorType: ENDPOINT
-				/*  3 byte*/ HID_REMOTE_EP,	//bEndpointAddress: Endpoint Address (IN)
-				/*  4 byte*/ 0x03,	//bmAttributes: Interrupt endpoint
-				/*  5 byte*/ HID_REMOTE_EP_SIZE,	//wMaxPacketSize
-				/*  6 byte*/ 0x00,
-				/*  7 byte*/ HID_FS_BINTERVAL,	//bInterval: Polling Interval (10 ms)
-	#endif
-
-	#if HID_INTERFACE_CUSTOM
-	// ============ INTERFACE 4: CUSTOM CONTROL ============
-
-		// Interface Descriptor (9 byte)
-		/*  1 byte*/ 0x09,	//bLength: Interface Descriptor size
-		/*  2 byte*/ USB_DESC_TYPE_INTERFACE, //bDescriptorType: Interface descriptor type
-		/*  3 byte*/ INTERFACE_CUSTOM_NUMBER,	//bInterfaceNumber: Number of Interface
-		/*  4 byte*/ 0x00,	//bAlternateSetting: Alternate setting
-		/*  5 byte*/ 0x01,	//bNumEndpoints
-		/*  6 byte*/ 0x03,	//bInterfaceClass: HID
-		/*  7 byte*/ 0x01,	//bInterfaceSubClass : 1=BOOT, 0=no boot
-		/*  8 byte*/ 0x00,	//nInterfaceProtocol : 0=none, 1=keyboard, 2=mouse
-		/*  9 byte*/ 0x00,	//iInterface: Index of string descriptor
-
-			// HID Descriptor (9 byte)
-			/*  1 byte*/ 0x09,	//bLength: HID Descriptor size
-			/*  2 byte*/ HID_DESCRIPTOR_TYPE,	//bDescriptorType: HID
-			/*3-4 byte*/ 0x10, 0x01,	//bcdHID: HID Class Spec release number
-			/*  5 byte*/ 0x00,	//bCountryCode: Hardware target country
-			/*  6 byte*/ 0x01,	//bNumDescriptors: Number of HID class descriptors to follow
-			/*  7 byte*/ 0x22,	//bDescriptorType
-			/*8-9 byte*/ LOBYTE(CUSTOM_REPORT_DESC_SIZE), HIBYTE(CUSTOM_REPORT_DESC_SIZE), // wItemLength: Total length of Report descriptor
-
-				// Endpoint Descriptor (7 byte)
-				/*  1 byte*/ 0x07,	//bLength: Endpoint Descriptor size
-				/*  2 byte*/ USB_DESC_TYPE_ENDPOINT,	//bDescriptorType: ENDPOINT
-				/*  3 byte*/ HID_CUSTOM_EP,	//bEndpointAddress: Endpoint Address (IN)
-				/*  4 byte*/ 0x03,	//bmAttributes: Interrupt endpoint
-				/*  5 byte*/ HID_CUSTOM_EP_SIZE,	//wMaxPacketSize
-				/*  6 byte*/ 0x00,
-				/*  7 byte*/ HID_FS_BINTERVAL,	//bInterval: Polling Interval (10 ms)
-	#endif
 };
 
 /* USB Standard Device Descriptor --------------------------------------------*/
@@ -867,47 +206,10 @@ __ALIGN_BEGIN static uint8_t USBD_HID_DeviceQualifierDesc[USB_LEN_DEV_QUALIFIER_
   */
 static uint8_t  USBD_HID_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 {
-// Открываем endpoint'ы только для включённых интерфейсов
-#if HID_INTERFACE_KEYBOARD
-	USBD_LL_OpenEP(pdev, HID_KEYBOARD_EP, USBD_EP_TYPE_INTR, HID_KEYBOARD_EP_SIZE);
-#endif
+	USBD_LL_OpenEP(pdev, HID_COMPOSITE_EP, USBD_EP_TYPE_INTR, HID_COMPOSITE_EP_SIZE);
 
-#if HID_INTERFACE_MOUSE
-	USBD_LL_OpenEP(pdev, HID_MOUSE_EP, USBD_EP_TYPE_INTR, HID_MOUSE_EP_SIZE);
-#endif
+	pdev->ep_in[HID_COMPOSITE_EP & 0xFU].is_used = 1U;
 
-#if HID_INTERFACE_CONSUMER
-	USBD_LL_OpenEP(pdev, HID_CONSUMER_EP, USBD_EP_TYPE_INTR, HID_CONSUMER_EP_SIZE);
-#endif
-
-#if HID_INTERFACE_REMOTE
-	USBD_LL_OpenEP(pdev, HID_REMOTE_EP, USBD_EP_TYPE_INTR, HID_REMOTE_EP_SIZE);
-#endif
-
-#if HID_INTERFACE_CUSTOM
-	USBD_LL_OpenEP(pdev, HID_CUSTOM_EP, USBD_EP_TYPE_INTR, HID_CUSTOM_EP_SIZE);
-#endif
-
-#if HID_INTERFACE_KEYBOARD
-	pdev->ep_in[HID_KEYBOARD_EP & 0xFU].is_used = 1U;
-#endif
-
-#if HID_INTERFACE_MOUSE
-	pdev->ep_in[HID_MOUSE_EP & 0xFU].is_used = 1U;
-#endif
-
-#if HID_INTERFACE_CONSUMER
-	pdev->ep_in[HID_CONSUMER_EP & 0xFU].is_used = 1U;
-#endif
-
-#if HID_INTERFACE_REMOTE
-	pdev->ep_in[HID_REMOTE_EP & 0xFU].is_used = 1U;
-#endif
-
-#if HID_INTERFACE_CUSTOM
-	pdev->ep_in[HID_CUSTOM_EP & 0xFU].is_used = 1U;
-#endif
-	
 	pdev->pClassData = USBD_malloc(sizeof(USBD_HID_HandleTypeDef));
 	if (pdev->pClassData == NULL)
 	return USBD_FAIL;
@@ -925,46 +227,9 @@ static uint8_t  USBD_HID_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
   */
 static uint8_t  USBD_HID_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 {
-	  // Закрываем endpoint'ы только для включённых интерфейсов
-#if HID_INTERFACE_KEYBOARD
-	USBD_LL_CloseEP(pdev, HID_KEYBOARD_EP);
-#endif
+	USBD_LL_CloseEP(pdev, HID_COMPOSITE_EP);
 
-#if HID_INTERFACE_MOUSE
-	USBD_LL_CloseEP(pdev, HID_MOUSE_EP);
-#endif
-
-#if HID_INTERFACE_CONSUMER
-	USBD_LL_CloseEP(pdev, HID_CONSUMER_EP);
-#endif
-
-#if HID_INTERFACE_REMOTE
-	USBD_LL_CloseEP(pdev, HID_REMOTE_EP);
-#endif
-
-#if HID_INTERFACE_CUSTOM
-	USBD_LL_CloseEP(pdev, HID_CUSTOM_EP);
-#endif
-
-#if HID_INTERFACE_KEYBOARD
-	pdev->ep_in[HID_KEYBOARD_EP & 0xFU].is_used = 0U;
-#endif
-
-#if HID_INTERFACE_MOUSE
-	pdev->ep_in[HID_MOUSE_EP & 0xFU].is_used = 0U;
-#endif
-
-#if HID_INTERFACE_CONSUMER
-	pdev->ep_in[HID_CONSUMER_EP & 0xFU].is_used = 0U;
-#endif
-
-#if HID_INTERFACE_REMOTE
-	pdev->ep_in[HID_REMOTE_EP & 0xFU].is_used = 0U;
-#endif
-
-#if HID_INTERFACE_CUSTOM
-	pdev->ep_in[HID_CUSTOM_EP & 0xFU].is_used = 0U;
-#endif
+	pdev->ep_in[HID_COMPOSITE_EP & 0xFU].is_used = 0U;
 
 	if (pdev->pClassData != NULL)
 	{
@@ -1035,46 +300,14 @@ static uint8_t USBD_HID_Setup(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *re
           {
             pbuf = NULL;
             len = 0;
-#if HID_INTERFACE_KEYBOARD
-            if (interface == INTERFACE_KEYBOARD_NUMBER)
+
+            if (interface == 0)
             {
-              pbuf = HID_KEYBOARD_ReportDesc;
-              len = KEYBOARD_REPORT_DESC_SIZE;
+              pbuf = HID_Composite_ReportDesc;
+              len = COMPOSITE_REPORT_DESC_SIZE;
             }
             else
-#endif
-#if HID_INTERFACE_MOUSE
-            if (interface == INTERFACE_MOUSE_NUMBER)
-            {
-              pbuf = HID_MOUSE_ReportDesc;
-              len = MOUSE_REPORT_DESC_SIZE;
-            }
-            else
-#endif
-#if HID_INTERFACE_CONSUMER
-            if (interface == INTERFACE_CONSUMER_NUMBER)
-            {
-              pbuf = HID_CONSUMER_ReportDesc;
-              len = CONSUMER_REPORT_DESC_SIZE;
-            }
-            else
-#endif
-#if HID_INTERFACE_REMOTE
-            if (interface == INTERFACE_REMOTE_NUMBER)
-            {
-              pbuf = HID_REMOTE_ReportDesc;
-              len = REMOTE_REPORT_DESC_SIZE;
-            }
-            else
-#endif
-#if HID_INTERFACE_CUSTOM
-            if (interface == INTERFACE_CUSTOM_NUMBER)
-            {
-              pbuf = HID_CUSTOM_ReportDesc;
-              len = CUSTOM_REPORT_DESC_SIZE;
-            }
-            else
-#endif
+
             {
               // Ни один интерфейс не совпал
               pbuf = NULL;
@@ -1100,26 +333,8 @@ static uint8_t USBD_HID_Setup(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *re
             static uint8_t hid_desc[9];
             uint16_t report_len = 0;
 
-#if HID_INTERFACE_KEYBOARD
-            if (interface == INTERFACE_KEYBOARD_NUMBER) report_len = KEYBOARD_REPORT_DESC_SIZE;
+            if (interface == 0) report_len = COMPOSITE_REPORT_DESC_SIZE;
             else
-#endif
-#if HID_INTERFACE_MOUSE
-            if (interface == INTERFACE_MOUSE_NUMBER) report_len = MOUSE_REPORT_DESC_SIZE;
-            else
-#endif
-#if HID_INTERFACE_CONSUMER
-            if (interface == INTERFACE_CONSUMER_NUMBER) report_len = CONSUMER_REPORT_DESC_SIZE;
-            else
-#endif
-#if HID_INTERFACE_REMOTE
-            if (interface == INTERFACE_REMOTE_NUMBER) report_len = REMOTE_REPORT_DESC_SIZE;
-            else
-#endif
-#if HID_INTERFACE_CUSTOM
-            if (interface == INTERFACE_CUSTOM_NUMBER) report_len = CUSTOM_REPORT_DESC_SIZE;
-            else
-#endif
             {
               report_len = 0;
             }
@@ -1199,27 +414,17 @@ static uint8_t USBD_HID_Setup(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *re
   */
 uint8_t USBD_HID_SendReport(USBD_HandleTypeDef  *pdev, uint8_t *report, uint16_t len)
 {
-	return USBD_HID_SendReport_EP(pdev, report, len, HID_KEYBOARD_EP);
-}
+	USBD_HID_HandleTypeDef     *hhid = (USBD_HID_HandleTypeDef *)pdev->pClassData;
 
-/**
-  НОВАЯ функция — отправка в указанный endpoint
-  Эта функция обходит внутреннее состояние hhid->state и позволяет отправлять в любой endpoint. 
-  * @brief  USBD_HID_SendReport_EP
-  *         Send HID Report to specific endpoint
-  * @param  pdev: device instance
-  * @param  report: pointer to report
-  * @param  len: report length
-  * @param  ep_addr: endpoint address (e.g. 0x81, 0x82, 0x83)
-  * @retval status
-  */
-uint8_t USBD_HID_SendReport_EP(USBD_HandleTypeDef *pdev, uint8_t *report, uint16_t len, uint8_t ep_addr)
-{
-  if (pdev->dev_state == USBD_STATE_CONFIGURED)
-  {
-    return USBD_LL_Transmit(pdev, ep_addr, report, len);
-  }
-  return USBD_FAIL;
+	if (pdev->dev_state == USBD_STATE_CONFIGURED)
+	{
+		if (hhid->state == HID_IDLE)
+		{
+			hhid->state = HID_BUSY;
+			USBD_LL_Transmit(pdev, HID_COMPOSITE_EP, report, len);
+		}
+	}
+	return USBD_OK;
 }
 
 /**
