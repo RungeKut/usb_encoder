@@ -68,6 +68,7 @@ typedef enum {
 	MODE_CONSUMER,
 	MODE_KEYBOARD,
 	MODE_MOUSE,
+	MODE_WHEEL,
 	MODE_COUNT        // ← специальный "счётчик" количества элементов — всегда последним!
 } device_mode_t;
 
@@ -494,6 +495,14 @@ void MouseMove(int8_t x, int8_t y) {
     SendMouseReport(&report);
 }
 
+// wheel: положительное — вверх, отрицательное — вниз
+void MouseWheel(int8_t delta) {
+    mouseHID report = {0};
+	report.id = 3;
+    report.wheel = delta;
+    SendMouseReport(&report);
+}
+
 void MouseClick(uint8_t button) {
     mouseHID report = {0};
 	report.id = 3;
@@ -531,25 +540,25 @@ static int32_t currCounter = 0;
 static int32_t delta = 0;
 
 void HandleEncoder(void) {
-  currCounter = __HAL_TIM_GET_COUNTER(&htim1);
-  currCounter = 32767 - ((currCounter-1) & 0xFFFF) / 2;
-  if(currCounter > 32768/2) {
-    // Преобразуем значения счетчика из:
-    //  ... 32766, 32767, 0, 1, 2 ...
-    // в значения:
-    //  ... -2, -1, 0, 1, 2 ...
-    currCounter = currCounter - 32768;
-  }
-  if(currCounter != prevCounter) {
-    delta = currCounter-prevCounter;
-    prevCounter = currCounter;
-    // защита от дребезга контактов и переполнения счетчика
-    // (переполнение будет случаться очень редко)
+	currCounter = __HAL_TIM_GET_COUNTER(&htim1);
+	currCounter = 32767 - ((currCounter-1) & 0xFFFF) / 2;
+	if(currCounter > 32768/2) {
+		// Преобразуем значения счетчика из:
+		//  ... 32766, 32767, 0, 1, 2 ...
+		// в значения:
+		//  ... -2, -1, 0, 1, 2 ...
+		currCounter = currCounter - 32768;
+	}
+	if(currCounter != prevCounter) {
+		delta = currCounter-prevCounter;
+		prevCounter = currCounter;
+		// защита от дребезга контактов и переполнения счетчика
+		// (переполнение будет случаться очень редко)
 		HAL_Delay(10);
-    if((delta > -10) && (delta < 10)) {
-      // здесь обрабатываем поворот энкодера на delta щелчков
+		if((delta > -10) && (delta < 10)) {
+			// здесь обрабатываем поворот энкодера на delta щелчков
 			HAL_GPIO_TogglePin(LED_PIN_GPIO_Port, LED_PIN_Pin);
-			
+
 			if (current_mode == MODE_ENCODER) {
 				// delta положительная или отрицательная в зависимости от направления вращения
 				if (delta < 0)
@@ -562,7 +571,7 @@ void HandleEncoder(void) {
 				}
 				
 			} else if (current_mode == MODE_CONSUMER) {
-                //consumer_index = (consumer_index - delta + CONSUMER_COUNT) % CONSUMER_COUNT;
+				//consumer_index = (consumer_index - delta + CONSUMER_COUNT) % CONSUMER_COUNT;
 				if (delta < 0)
 				{
 					PressMediaKeyOnce(HID_MEDIA_Vol_Up);
@@ -571,31 +580,35 @@ void HandleEncoder(void) {
 				{
 					PressMediaKeyOnce(HID_MEDIA_Vol_Down);
 				}
+				
 			} else if (current_mode == MODE_KEYBOARD) {
-        logical_index = (logical_index - delta + 2 * KEY_COUNT) % (2 * KEY_COUNT);
+				logical_index = (logical_index - delta + 2 * KEY_COUNT) % (2 * KEY_COUNT);
 				// Определяем физическую клавишу и нужно ли Shift
-        uint8_t physical_index = logical_index / 2; // 0,0,1,1,2,2,...
-        bool use_shift = (logical_index % 2 == 0);  // чётный → с Shift, нечётный → без Shift
+				uint8_t physical_index = logical_index / 2; // 0,0,1,1,2,2,...
+				bool use_shift = (logical_index % 2 == 0);  // чётный → с Shift, нечётный → без Shift
 				
 				// Стираем предыдущую букву (если не первое нажатие)
-        if (!apply_input_key) {
-          PressKeyOnce(HIDKEY_BACKSPACE, HIDKEY_MODIFIER_NONE); // Backspace
-        }
+				if (!apply_input_key) {
+					PressKeyOnce(HIDKEY_BACKSPACE, HIDKEY_MODIFIER_NONE); // Backspace
+				}
 				
 				uint8_t modifier = use_shift ? HIDKEY_MODIFIER_LEFT_SHIFT : HIDKEY_MODIFIER_NONE;
-        PressKeyOnce(key_list[physical_index], modifier);
+				PressKeyOnce(key_list[physical_index], modifier);
 
-        apply_input_key = false;
-				
-      } else if (current_mode == MODE_MOUSE) {
+				apply_input_key = false;
+
+			} else if (current_mode == MODE_MOUSE) {
 				uint8_t RoadLength = delta * MOUSE_STEP;
 				if (axis_mouse_move)
 					MouseMove(-RoadLength, 0);
 				else
 					MouseMove(0, RoadLength);
-      }
-    }
-  }
+			
+			} else if (current_mode == MODE_WHEEL) {
+				MouseWheel(delta);
+			}
+		}
+	}
 }
 
 /* ========================================================================== */
@@ -608,6 +621,8 @@ void DoShortPressAction(void) {
 	} else if (current_mode == MODE_KEYBOARD) {
 		apply_input_key = true;
 	} else if (current_mode == MODE_MOUSE) {
+		MouseClick(0x01); // Left click
+	} else if (current_mode == MODE_WHEEL) {
 		MouseClick(0x01); // Left click
 	} else if (current_mode == MODE_CONSUMER) {
 		PressMediaKeyOnce(HID_MEDIA_Vol_Mute);
@@ -666,6 +681,8 @@ void DoDoubleClickAction(void) {
 	} else if (current_mode == MODE_MOUSE) {
 		MouseClick(0x02); // Right click
 		axis_mouse_move = axis_mouse_move ? false : true;
+	} else if (current_mode == MODE_WHEEL) {
+		MouseClick(0x03); // Middle click
 	}
 }
 
