@@ -657,7 +657,7 @@ void DoDoubleClickAction(void) {
 		PressKeyOnce(HIDKEY_BACKSPACE, HIDKEY_MODIFIER_NONE);
 	} else if (current_mode == MODE_KEYBOARD) {
 		// Переключить раскладку (отправить Alt+Shift)
-		PressKeyOnce(HIDKEY_MODIFIER_LEFT_ALT, HIDKEY_MODIFIER_LEFT_SHIFT); // Left Shift, Left Alt
+		PressKeyOnce(HIDKEY_NONE, HIDKEY_MODIFIER_LEFT_ALT + HIDKEY_MODIFIER_LEFT_SHIFT); // Left Shift, Left Alt
 	} else if (current_mode == MODE_CONSUMER) {
 //		if (powerFlag) {
 //			SendCustomCommand(HID_CUSTOM_SystemWakeUp);
@@ -682,7 +682,8 @@ void DoDoubleClickAction(void) {
 		MouseClick(0x02); // Right click
 		axis_mouse_move = axis_mouse_move ? false : true;
 	} else if (current_mode == MODE_WHEEL) {
-		MouseClick(0x03); // Middle click
+		//MouseClick(0x03); // Middle click
+		PressKeyOnce(HIDKEY_NONE, HIDKEY_MODIFIER_LEFT_UI);
 	}
 }
 
