@@ -699,6 +699,22 @@ void HandleSatusPC(void) {
 	}
 }
 
+/* ========================================================================== */
+/*              --- Функция инициализации структуры кнопок ---                */
+/* ========================================================================== */
+
+#define NUM_BUTTONS 4
+button_ctx_t buttons[NUM_BUTTONS];
+
+void System_Init_Buttons(void)
+{
+    // Порты и пины кнопок
+    Button_Init(&buttons[0], ENCODER_KEY_GPIO_Port, ENCODER_KEY_Pin);
+    Button_Init(&buttons[1], KEY_ON_GPIO_Port, KEY_ON_Pin);
+    Button_Init(&buttons[2], KEY_WIN_GPIO_Port, KEY_WIN_Pin);
+    Button_Init(&buttons[3], KEY_reset_GPIO_Port, KEY_reset_Pin);
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -736,34 +752,43 @@ int main(void)
 	/* USER CODE BEGIN 2 */
 	HAL_NVIC_EnableIRQ(TIM1_UP_IRQn);
 	HAL_TIM_Encoder_Start(&htim1, TIM_CHANNEL_ALL);
+	
+	System_Init_Buttons();
 	/* USER CODE END 2 */
 	
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
+	HAL_GPIO_WritePin(LED_220_GPIO_Port, LED_220_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(LED_POW_GPIO_Port, LED_POW_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(COMP_ON_GPIO_Port, COMP_ON_Pin, GPIO_PIN_SET);
 	while (1)
 	{
 		HandleEncoder(); // Только опрос — быстро!
-		HandleButton();
+        for (int i = 0; i < NUM_BUTTONS; i++) {
+            HandleButton(&buttons[i]);
+        }
 		HandleSatusPC();
 		
-		// Обработка событий кнопки
-		button_event_t btn_evt = GetButtonEvent();
-		switch (btn_evt) {
-			case BUTTON_EVT_SHORT_PRESS:
-                // Сюда можно ставить "долгие" действия
-                DoShortPressAction();
-                break;
-
-            case BUTTON_EVT_DOUBLE_CLICK:
-                DoDoubleClickAction();
-                break;
-
-            case BUTTON_EVT_LONG_PRESS:
-                DoLongPressAction();
-                break;
-
-            default:
-                break;
+		// Обработка событий кнопок
+		for (int i = 0; i < NUM_BUTTONS; i++) {
+			button_event_t btn_evt = GetButtonEvent(&buttons[i]);
+			switch (btn_evt) {
+				case BUTTON_EVT_SHORT_PRESS:
+					// Сюда можно ставить "долгие" действия
+					DoShortPressAction();
+					break;
+	
+				case BUTTON_EVT_DOUBLE_CLICK:
+					DoDoubleClickAction();
+					break;
+	
+				case BUTTON_EVT_LONG_PRESS:
+					DoLongPressAction();
+					break;
+	
+				default:
+					break;
+			}
         }
 		
 		//HAL_Delay(5); // небольшая задержка для стабильности
