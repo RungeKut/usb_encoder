@@ -89,6 +89,7 @@ void Error_Handler(void);
 #define ENCODER_KEY_GPIO_Port GPIOA
 
 /* USER CODE BEGIN Private defines */
+static uint32_t now_tick;
 
 /* USER CODE END Private defines */
 

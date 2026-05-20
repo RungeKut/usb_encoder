@@ -2,101 +2,85 @@
 #include "main.h"
 
 // === Настройки ===
-#define DEBOUNCE_DELAY_MS       40U
-#define SHORT_PRESS_MAX_MS     300U
-#define LONG_PRESS_DURATION_MS 1000U
-#define DOUBLE_CLICK_TIMEOUT_MS 350U
+#define DEBOUNCE_MS				40U
+#define SHORT_PRESS_MAX_MS		300U
+#define LONG_PRESS_MS			1000U
+#define DOUBLE_CLICK_GAP_MS		350U
 
 // === Инициализация контекста ===
 void Button_Init(button_ctx_t* ctx, GPIO_TypeDef* port, uint16_t pin)
 {
     ctx->port = port;
     ctx->pin = pin;
-    
-    // Инициализируем состояние текущим уровнем пина
-    bool initial_state = (HAL_GPIO_ReadPin(port, pin) == GPIO_PIN_RESET);
-    ctx->last_raw = initial_state;
-    ctx->last_stable = initial_state;
-    ctx->last_change_time = HAL_GetTick();
-    
-    ctx->pressed = false;
-    ctx->press_start_time = 0;
-    ctx->long_press_executed = false;
-    ctx->last_release_time = 0;
-    ctx->waiting_for_double = false;
+    ctx->state = 0; // IDLE
     ctx->pending_event = BUTTON_EVT_NONE;
-}
-
-// === Вспомогательная функция: чтение с debounce ===
-static bool ReadButtonStable(button_ctx_t* ctx)
-{
-    bool raw = (HAL_GPIO_ReadPin(ctx->port, ctx->pin) == GPIO_PIN_RESET);
-    uint32_t now = HAL_GetTick();
-    
-    if (raw != ctx->last_raw) {
-        ctx->last_raw = raw;
-        ctx->last_change_time = now;
-    }
-
-    // Состояние стабильно, если не менялось дольше DEBOUNCE_DELAY_MS
-    if ((now - ctx->last_change_time) > DEBOUNCE_DELAY_MS) {
-        ctx->last_stable = raw;
-    }
-    return ctx->last_stable;
+    ctx->last_raw = true; // Assume pull-up (not pressed)
 }
 
 // === Основной обработчик кнопки ===
 void HandleButton(button_ctx_t* ctx)
 {
     uint32_t now = HAL_GetTick();
-    bool is_pressed = ReadButtonStable(ctx);
+    bool is_active = (HAL_GPIO_ReadPin(ctx->port, ctx->pin) == GPIO_PIN_RESET);
 
-    if (is_pressed) {
-        // Кнопка нажата
-        if (!ctx->pressed) {
-            // Только что нажали
-            ctx->pressed = true;
-            ctx->press_start_time = now;
-            ctx->long_press_executed = false;
-            // Не сбрасываем waiting_for_double — может быть второй клик!
-        } else {
-            // Уже нажата — проверяем долгое нажатие
-            if (!ctx->long_press_executed && (now - ctx->press_start_time >= LONG_PRESS_DURATION_MS)) {
-                ctx->long_press_executed = true;
-                ctx->waiting_for_double = false;
-                ctx->pending_event = BUTTON_EVT_LONG_PRESS;
-            }
-        }
-    } else {
-        // Кнопка отпущена
-        if (ctx->pressed) {
-            uint32_t press_duration = now - ctx->press_start_time;
-            ctx->pressed = false;
-            ctx->last_release_time = now;
-            
-            if (!ctx->long_press_executed) {
-                // Уже обработано выше
-            } else {
-                if (press_duration < SHORT_PRESS_MAX_MS) {
-                    if (ctx->waiting_for_double) {
-                        // Второй клик
-                        ctx->waiting_for_double = false;
-                        ctx->pending_event = BUTTON_EVT_DOUBLE_CLICK;
-                    } else {
-                        // Первый клик — ждём второй
-                        ctx->waiting_for_double = true;
-                        ctx->last_release_time = now; // обновляем время для таймаута
-                    }
-                }
-                // Игнорируем нажатия от 300 до 1000 мс
-            }
-        }
+    // 1. Debounce
+    if (is_active != ctx->last_raw) {
+        ctx->last_raw = is_active;
+        ctx->debounce_timer = now;
     }
+    if ((now - ctx->debounce_timer) < DEBOUNCE_MS) return; // Ещё дребезг
+    bool stable = ctx->last_raw;
 
-    // Проверка таймаута двойного клика
-    if (ctx->waiting_for_double && (now - ctx->last_release_time > DOUBLE_CLICK_TIMEOUT_MS)) {
-        ctx->waiting_for_double = false;
-        ctx->pending_event = BUTTON_EVT_SHORT_PRESS;
+    // 2. State Machine
+    switch (ctx->state)
+    {
+        case 0: // IDLE
+            if (stable) {
+                ctx->state = 1; // Debounce Press
+                ctx->debounce_timer = now;
+            }
+            break;
+
+        case 1: // DEBOUNCE_PRESS
+            if (!stable) { ctx->state = 0; break; } // Glitch
+            ctx->state = 2; // PRESSED
+            ctx->press_start = now;
+            break;
+
+        case 2: // PRESSED
+            if (!stable) {
+                uint32_t duration = now - ctx->press_start;
+                if (duration >= LONG_PRESS_MS) {
+                    ctx->pending_event = BUTTON_EVT_LONG_PRESS;
+                    ctx->state = 3; // LONG_HELD
+                } else if (duration < SHORT_PRESS_MAX_MS) {
+                    ctx->state = 4; // WAIT_DOUBLE
+                    ctx->double_wait_start = now;
+                } else {
+                    ctx->state = 0; // Medium press ignored
+                }
+            } else if ((now - ctx->press_start) >= LONG_PRESS_MS) {
+                ctx->pending_event = BUTTON_EVT_LONG_PRESS;
+                ctx->state = 3; // LONG_HELD
+            }
+            break;
+
+        case 3: // LONG_HELD
+            if (!stable) ctx->state = 0; // Wait release
+            break;
+
+        case 4: // WAIT_DOUBLE
+            if (stable) {
+                // Второй клик обнаружен
+                ctx->state = 1; // Переход в Deboounce для второго клика
+                ctx->debounce_timer = now;
+                ctx->pending_event = BUTTON_EVT_DOUBLE_CLICK;
+            } else if ((now - ctx->double_wait_start) >= DOUBLE_CLICK_GAP_MS) {
+                // Таймаут -> это одиночный клик
+                ctx->pending_event = BUTTON_EVT_SHORT_PRESS;
+                ctx->state = 0;
+            }
+            break;
     }
 }
 

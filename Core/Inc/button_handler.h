@@ -18,20 +18,13 @@ typedef struct {
     GPIO_TypeDef* port;
     uint16_t pin;
     
-    // Состояние дребезга
+    // Внутреннее состояние (не трогать из main)
     bool last_raw;
-    bool last_stable;
-    uint32_t last_change_time;
-    
-    // Состояние нажатия
-    bool pressed;
-    uint32_t press_start_time;
-    bool long_press_executed;
-    uint32_t last_release_time;
-    bool waiting_for_double;
-    
-    // Очередь событий
-    volatile button_event_t pending_event;
+    uint32_t debounce_timer;
+    uint32_t press_start;
+    uint32_t double_wait_start;
+    button_event_t pending_event;
+    uint8_t state; // 0=Idle, 1=Debounce, 2=Pressed, 3=LongHeld, 4=WaitDouble
 } button_ctx_t;
 
 // Инициализация контекста

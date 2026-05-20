@@ -428,6 +428,36 @@
               <FileType>1</FileType>
               <FilePath>..\Core\Src\button_handler.c</FilePath>
             </File>
+            <File>
+              <FileName>button_actions.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\button_actions.c</FilePath>
+            </File>
+            <File>
+              <FileName>combo_resolver.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\combo_resolver.c</FilePath>
+            </File>
+            <File>
+              <FileName>hid_consumer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\hid_consumer.c</FilePath>
+            </File>
+            <File>
+              <FileName>hid_keyboard.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\hid_keyboard.c</FilePath>
+            </File>
+            <File>
+              <FileName>hid_mouse.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\hid_mouse.c</FilePath>
+            </File>
+            <File>
+              <FileName>encoder_handler.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\encoder_handler.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
