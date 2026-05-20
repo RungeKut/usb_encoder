@@ -14,7 +14,7 @@ void Button_Init(button_ctx_t* ctx, GPIO_TypeDef* port, uint16_t pin)
     ctx->pin = pin;
     ctx->state = 0; // IDLE
     ctx->pending_event = BUTTON_EVT_NONE;
-    ctx->last_raw = true; // Assume pull-up (not pressed)
+    ctx->last_raw = true; // Pull-up по умолчанию (не нажата)
 }
 
 // === Основной обработчик кнопки ===
@@ -28,7 +28,7 @@ void HandleButton(button_ctx_t* ctx)
         ctx->last_raw = is_active;
         ctx->debounce_timer = now;
     }
-    if ((now - ctx->debounce_timer) < DEBOUNCE_MS) return; // Ещё дребезг
+    if ((now - ctx->debounce_timer) < DEBOUNCE_MS) return;
     bool stable = ctx->last_raw;
 
     // 2. State Machine
@@ -36,28 +36,28 @@ void HandleButton(button_ctx_t* ctx)
     {
         case 0: // IDLE
             if (stable) {
-                ctx->state = 1; // Debounce Press
+                ctx->state = 1; // DEBOUNCE_DOWN
                 ctx->debounce_timer = now;
             }
             break;
 
-        case 1: // DEBOUNCE_PRESS
-            if (!stable) { ctx->state = 0; break; } // Glitch
+        case 1: // DEBOUNCE_DOWN
+            if (!stable) { ctx->state = 0; break; } // Дребезг отпустил
             ctx->state = 2; // PRESSED
             ctx->press_start = now;
             break;
 
         case 2: // PRESSED
             if (!stable) {
-                uint32_t duration = now - ctx->press_start;
-                if (duration >= LONG_PRESS_MS) {
+                uint32_t dur = now - ctx->press_start;
+                if (dur >= LONG_PRESS_MS) {
                     ctx->pending_event = BUTTON_EVT_LONG_PRESS;
                     ctx->state = 3; // LONG_HELD
-                } else if (duration < SHORT_PRESS_MAX_MS) {
+                } else if (dur < SHORT_PRESS_MAX_MS) {
                     ctx->state = 4; // WAIT_DOUBLE
                     ctx->double_wait_start = now;
                 } else {
-                    ctx->state = 0; // Medium press ignored
+                    ctx->state = 0; // Среднее нажатие (300..1000мс) игнорируем
                 }
             } else if ((now - ctx->press_start) >= LONG_PRESS_MS) {
                 ctx->pending_event = BUTTON_EVT_LONG_PRESS;
@@ -66,20 +66,25 @@ void HandleButton(button_ctx_t* ctx)
             break;
 
         case 3: // LONG_HELD
-            if (!stable) ctx->state = 0; // Wait release
+            if (!stable) ctx->state = 0; // Ждем физического отпускания
             break;
 
-        case 4: // WAIT_DOUBLE
+        case 4: // WAIT_DOUBLE (после первого короткого отпускания)
             if (stable) {
-                // Второй клик обнаружен
-                ctx->state = 1; // Переход в Deboounce для второго клика
-                ctx->debounce_timer = now;
+                // Второе нажатие обнаружено -> фиксируем Double Click
                 ctx->pending_event = BUTTON_EVT_DOUBLE_CLICK;
+                ctx->state = 5; // Переходим в состояние подавления
             } else if ((now - ctx->double_wait_start) >= DOUBLE_CLICK_GAP_MS) {
-                // Таймаут -> это одиночный клик
+                // Таймаут истек -> это был одиночный клик
                 ctx->pending_event = BUTTON_EVT_SHORT_PRESS;
                 ctx->state = 0;
             }
+            break;
+
+        case 5: // WAIT_DOUBLE_RELEASE
+            // Игнорируем всё, пока вторая кнопка не будет отпущена.
+            // Это предотвращает повторный заход в логику короткого нажатия.
+            if (!stable) ctx->state = 0; 
             break;
     }
 }

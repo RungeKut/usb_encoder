@@ -493,7 +493,7 @@ volatile uint8_t stateCount = 0;
 
 uint8_t USBD_HID_SOF(void)
 {
-    g_last_sof_time = HAL_GetTick(); // или ваш системный таймер
+    g_last_sof_time = HAL_GetTick();
     return USBD_OK;
 }
 
@@ -509,6 +509,26 @@ bool PCisPowerDown(void) {
 		}
 	} else {
 		stateCount = 0;
+		if ( g_last_sof_time == 0 ) { // Только что подали питание
+			return true;
+		}
 	}
 	return false;
+}
+
+static uint32_t SatusPC_last_tick = 0;
+
+bool PC_RunState = false;
+void HandleSatusPC(void) {
+	if (PCisPowerDown()) {
+		// Для выполнения действия раз в 200мс.
+		if ((now_tick - SatusPC_last_tick) < 200 && now_tick != 0) { return; }
+		SatusPC_last_tick = now_tick;
+		PC_RunState = false;
+		HAL_GPIO_TogglePin(LED_PIN_GPIO_Port, LED_PIN_Pin);
+		//HAL_Delay(200); //Здержку более 300 мс - не ставить! Смотри реализацию PCisPowerDown()
+	}
+	else {
+		PC_RunState = true;
+	}
 }

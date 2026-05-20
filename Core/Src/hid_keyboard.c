@@ -9,7 +9,9 @@ extern USBD_HandleTypeDef hUsbDeviceFS;
 
 void HID_Keyboard_SendReport(keyboardHID *kb) {
 	// Неблокирующее ожидание готовности USB
-    while (USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)kb, sizeof(keyboardHID)) == USBD_BUSY);
+    //while (USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)kb, sizeof(keyboardHID)) == USBD_BUSY);
+	HAL_Delay(30);
+	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)kb, sizeof(keyboardHID));
 }
 
 // Удобная обёртка: нажать и отпустить одну клавишу

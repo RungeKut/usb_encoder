@@ -67,23 +67,6 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN 0 */
 static uint32_t now_tick = 0;
 
-/* ========================================================================== */
-/*                --- Функции отслеживания выключения ПК ---                  */
-/* ========================================================================== */
-static uint32_t SatusPC_last_tick = 0;
-
-void HandleSatusPC(void) {
-	if (PCisPowerDown())
-	{
-		// Для выполнения действия раз в 200мс.
-		if ((now_tick - SatusPC_last_tick) < 200) { return; }
-		SatusPC_last_tick = now_tick;
-		
-		HAL_GPIO_TogglePin(LED_PIN_GPIO_Port, LED_PIN_Pin);
-		//HAL_Delay(200); //Здержку более 300 мс - не ставить! Смотри реализацию PCisPowerDown()
-	}
-}
-
 /* USER CODE END 0 */
 
 /**

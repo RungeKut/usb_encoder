@@ -145,6 +145,8 @@ uint32_t USBD_HID_GetPollingInterval(USBD_HandleTypeDef *pdev);
 
 bool PCisPowerDown(void);
 uint8_t USBD_HID_SOF(void);
+void HandleSatusPC(void);
+extern bool PC_RunState;
 
 /**
   * @}

@@ -4,7 +4,9 @@
 extern USBD_HandleTypeDef hUsbDeviceFS;
 
 static void HID_Media_SendReport(mediaHID *kb) {
-    while (USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)kb, sizeof(mediaHID)) == USBD_BUSY);
+    //while (USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)kb, sizeof(mediaHID)) == USBD_BUSY);
+	HAL_Delay(30);
+	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)kb, sizeof(mediaHID));
 }
 
 // Удобная обёртка: нажать и отпустить одну клавишу
@@ -27,7 +29,9 @@ void HID_Media_PressKeyOnce(uint16_t keycode) {
 /* ========================================================================== */
 
 static void HID_System_SendReport(customHID *custom) {
-    while (USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)custom, sizeof(customHID)) == USBD_BUSY);
+    //while (USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)custom, sizeof(customHID)) == USBD_BUSY);
+	HAL_Delay(30);
+	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)custom, sizeof(customHID));
 }
 
 void HID_System_SendCommand(uint8_t usage) {

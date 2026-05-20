@@ -16,9 +16,9 @@ static uint32_t encoder_last_tick = 0;
 static uint8_t logical_index = 0;
 
 void HandleEncoder(void) {
-	// Для выполнения функции раз в 50мс.
-	if ((now_tick - encoder_last_tick) < 50) { return; }
-	encoder_last_tick = now_tick;
+	// Для выполнения функции раз в 10мс.
+	//if ((now_tick - encoder_last_tick) < 10) { return; }
+	//encoder_last_tick = now_tick;
 	
 	currCounter = __HAL_TIM_GET_COUNTER(&htim1);
 	currCounter = 32767 - ((currCounter-1) & 0xFFFF) / 2;
@@ -34,7 +34,7 @@ void HandleEncoder(void) {
 		prevCounter = currCounter;
 		// защита от дребезга контактов и переполнения счетчика
 		// (переполнение будет случаться очень редко)
-		//HAL_Delay(10);
+		HAL_Delay(10);
 		if((delta > -10) && (delta < 10)) {
 			// здесь обрабатываем поворот энкодера на delta щелчков
 			HAL_GPIO_TogglePin(LED_PIN_GPIO_Port, LED_PIN_Pin);
