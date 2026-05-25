@@ -517,18 +517,26 @@ bool PCisPowerDown(void) {
 }
 
 static uint32_t SatusPC_last_tick = 0;
-
 bool PC_RunState = false;
+static uint8_t SatusPC_counter = 0;
+
 void HandleSatusPC(void) {
+	// Для выполнения действия раз в 200мс.
+	if ((now_tick - SatusPC_last_tick) < 200 && now_tick == 0) { return; }
+	SatusPC_last_tick = now_tick;
+	
 	if (PCisPowerDown()) {
-		// Для выполнения действия раз в 200мс.
-		if ((now_tick - SatusPC_last_tick) < 200 && now_tick != 0) { return; }
-		SatusPC_last_tick = now_tick;
 		PC_RunState = false;
 		HAL_GPIO_TogglePin(LED_PIN_GPIO_Port, LED_PIN_Pin);
 		//HAL_Delay(200); //Здержку более 300 мс - не ставить! Смотри реализацию PCisPowerDown()
 	}
 	else {
-		PC_RunState = true;
+		if ( SatusPC_counter > 5 ) {
+			PC_RunState = true;
+			SatusPC_counter = 0;
+		}
+		else {
+			SatusPC_counter++;
+		}
 	}
 }

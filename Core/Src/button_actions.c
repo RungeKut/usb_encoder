@@ -96,22 +96,35 @@ void POW_ON_ActionShortPress(void) {
 		// Красный цвет - сигнализируем, что по USB мы уже видим выключенное состояние
 		HAL_GPIO_WritePin(LED_220_GPIO_Port, LED_220_Pin, GPIO_PIN_RESET);
 	    HAL_GPIO_WritePin(LED_POW_GPIO_Port, LED_POW_Pin, GPIO_PIN_SET);
+		
 		// Ждем защитный интервал и снимаем питание
 		HAL_Delay(5000);
 		HAL_GPIO_WritePin(COMP_ON_GPIO_Port, COMP_ON_Pin, GPIO_PIN_RESET);
+		
+		//Желтый
 		HAL_GPIO_WritePin(LED_220_GPIO_Port, LED_220_Pin, GPIO_PIN_RESET);
 		HAL_GPIO_WritePin(LED_POW_GPIO_Port, LED_POW_Pin, GPIO_PIN_RESET);
+		
 		powerState = false;
 	}
 	else {
 		// Подаем питание и сразу зажигаем зеленый цвет, чтобы было понятно, что кнопка была нажата
 		HAL_GPIO_WritePin(COMP_ON_GPIO_Port, COMP_ON_Pin, GPIO_PIN_SET);
+		
+		//Зеленый
 		HAL_GPIO_WritePin(LED_220_GPIO_Port, LED_220_Pin, GPIO_PIN_SET);
+	    HAL_GPIO_WritePin(LED_POW_GPIO_Port, LED_POW_Pin, GPIO_PIN_RESET);
+		
 		// Ждем загрузки USB и сигнализируем об этом короткой красной вспышкой
 		while (!PC_RunState) { HandleSatusPC(); }
+		
+		//Красныый
 		HAL_GPIO_WritePin(LED_220_GPIO_Port, LED_220_Pin, GPIO_PIN_RESET);
 	    HAL_GPIO_WritePin(LED_POW_GPIO_Port, LED_POW_Pin, GPIO_PIN_SET);
+		
 		HAL_Delay(1000);
+		
+		//Зеленый
 		HAL_GPIO_WritePin(LED_220_GPIO_Port, LED_220_Pin, GPIO_PIN_SET);
 	    HAL_GPIO_WritePin(LED_POW_GPIO_Port, LED_POW_Pin, GPIO_PIN_RESET);
 		powerState = true;
@@ -120,9 +133,15 @@ void POW_ON_ActionShortPress(void) {
 //Одно двойное нажатие
 void POW_ON_ActionDoubleClick(void) {
 }
+
 //Одно долгое нажатие
 void POW_ON_ActionLongPress(void) {
 	HAL_GPIO_WritePin(COMP_ON_GPIO_Port, COMP_ON_Pin, GPIO_PIN_RESET);
+	
+	//Желтый
+	HAL_GPIO_WritePin(LED_220_GPIO_Port, LED_220_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(LED_POW_GPIO_Port, LED_POW_Pin, GPIO_PIN_RESET);
+	
 	powerState = false;
 }
 
@@ -133,9 +152,11 @@ void POW_ON_ActionLongPress(void) {
 void WIN_ActionShortPress(void) {
 	HID_KB_PressKeyOnce(HIDKEY_NONE, HIDKEY_MODIFIER_LEFT_UI);
 }
+
 //Одно двойное нажатие
 void WIN_ActionDoubleClick(void) {
 }
+
 //Одно долгое нажатие
 void WIN_ActionLongPress(void) {
 }
@@ -147,9 +168,11 @@ void WIN_ActionLongPress(void) {
 void C_ActionShortPress(void) {
 	HID_KB_PressKeyOnce(HIDKEY_ESCAPE, HIDKEY_MODIFIER_NONE);
 }
+
 //Одно двойное нажатие
 void C_ActionDoubleClick(void) {
 }
+
 //Одно долгое нажатие
 void C_ActionLongPress(void) {
 }

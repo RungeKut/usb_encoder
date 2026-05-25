@@ -3,9 +3,9 @@
 
 // === Настройки ===
 #define DEBOUNCE_MS				40U
-#define SHORT_PRESS_MAX_MS		300U
-#define LONG_PRESS_MS			1000U
-#define DOUBLE_CLICK_GAP_MS		350U
+#define SHORT_PRESS_MAX_MS		400U
+#define LONG_PRESS_MS			3000U
+#define DOUBLE_CLICK_GAP_MS		300U
 
 // === Инициализация контекста ===
 void Button_Init(button_ctx_t* ctx, GPIO_TypeDef* port, uint16_t pin)
