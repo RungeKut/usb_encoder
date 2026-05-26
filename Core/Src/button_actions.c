@@ -111,16 +111,16 @@ void POW_ON_ActionShortPress(void) {
 		// Подаем питание и сразу зажигаем зеленый цвет, чтобы было понятно, что кнопка была нажата
 		HAL_GPIO_WritePin(COMP_ON_GPIO_Port, COMP_ON_Pin, GPIO_PIN_SET);
 		
-		//Зеленый
-		HAL_GPIO_WritePin(LED_220_GPIO_Port, LED_220_Pin, GPIO_PIN_SET);
-	    HAL_GPIO_WritePin(LED_POW_GPIO_Port, LED_POW_Pin, GPIO_PIN_RESET);
+		//Красныый
+		HAL_GPIO_WritePin(LED_220_GPIO_Port, LED_220_Pin, GPIO_PIN_RESET);
+	    HAL_GPIO_WritePin(LED_POW_GPIO_Port, LED_POW_Pin, GPIO_PIN_SET);
 		
 		// Ждем загрузки USB и сигнализируем об этом короткой красной вспышкой
 		while (!PC_RunState) { HandleSatusPC(); }
 		
-		//Красныый
+		//Желтый
 		HAL_GPIO_WritePin(LED_220_GPIO_Port, LED_220_Pin, GPIO_PIN_RESET);
-	    HAL_GPIO_WritePin(LED_POW_GPIO_Port, LED_POW_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(LED_POW_GPIO_Port, LED_POW_Pin, GPIO_PIN_RESET);
 		
 		HAL_Delay(1000);
 		

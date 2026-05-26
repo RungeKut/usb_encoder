@@ -12,7 +12,7 @@ bool axis_mouse_move = false;
 
 static void HID_Mouse_SendReport(mouseHID *mouse) {
     //while (USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)mouse, sizeof(mouseHID)) == USBD_BUSY);
-	HAL_Delay(30);
+	//HAL_Delay(30);
 	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)mouse, sizeof(mouseHID));
 }
 

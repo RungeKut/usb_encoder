@@ -81,12 +81,32 @@ void Error_Handler(void);
 #define COMP_ON_GPIO_Port GPIOB
 #define ZYNQ_ON_Pin GPIO_PIN_11
 #define ZYNQ_ON_GPIO_Port GPIOB
+#define dis_ce_bp_Pin GPIO_PIN_12
+#define dis_ce_bp_GPIO_Port GPIOB
+#define dis_clk_bp_Pin GPIO_PIN_13
+#define dis_clk_bp_GPIO_Port GPIOB
+#define dis_out_bp_Pin GPIO_PIN_14
+#define dis_out_bp_GPIO_Port GPIOB
+#define dis_in_bp_Pin GPIO_PIN_15
+#define dis_in_bp_GPIO_Port GPIOB
 #define ENCODER_DT_Pin GPIO_PIN_8
 #define ENCODER_DT_GPIO_Port GPIOA
 #define ENCODER_SW_Pin GPIO_PIN_9
 #define ENCODER_SW_GPIO_Port GPIOA
 #define ENCODER_KEY_Pin GPIO_PIN_10
 #define ENCODER_KEY_GPIO_Port GPIOA
+#define KEY_PRESET_Pin GPIO_PIN_15
+#define KEY_PRESET_GPIO_Port GPIOA
+#define KEY_MUTE_Pin GPIO_PIN_3
+#define KEY_MUTE_GPIO_Port GPIOB
+#define KEY_LEFT_Pin GPIO_PIN_4
+#define KEY_LEFT_GPIO_Port GPIOB
+#define KEY_RIGHT_Pin GPIO_PIN_5
+#define KEY_RIGHT_GPIO_Port GPIOB
+#define dis_sel_bp_Pin GPIO_PIN_8
+#define dis_sel_bp_GPIO_Port GPIOB
+#define KEY_PRINTSCREEN_Pin GPIO_PIN_9
+#define KEY_PRINTSCREEN_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 static uint32_t now_tick;

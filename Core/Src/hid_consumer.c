@@ -5,7 +5,7 @@ extern USBD_HandleTypeDef hUsbDeviceFS;
 
 static void HID_Media_SendReport(mediaHID *kb) {
     //while (USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)kb, sizeof(mediaHID)) == USBD_BUSY);
-	HAL_Delay(30);
+	//HAL_Delay(30);
 	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)kb, sizeof(mediaHID));
 }
 
@@ -16,12 +16,12 @@ void HID_Media_PressKeyOnce(uint16_t keycode) {
 	report.lsb = LOBYTE(keycode);
 	report.msb = HIBYTE(keycode);
 	HID_Media_SendReport(&report);
-	HAL_Delay(30);
+	//HAL_Delay(30);
 
 	report.lsb = 0x00;
 	report.msb = 0x00;
 	HID_Media_SendReport(&report);
-	HAL_Delay(30);
+	//HAL_Delay(30);
 }
 
 /* ========================================================================== */
@@ -30,7 +30,7 @@ void HID_Media_PressKeyOnce(uint16_t keycode) {
 
 static void HID_System_SendReport(customHID *custom) {
     //while (USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)custom, sizeof(customHID)) == USBD_BUSY);
-	HAL_Delay(30);
+	//HAL_Delay(30);
 	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)custom, sizeof(customHID));
 }
 
