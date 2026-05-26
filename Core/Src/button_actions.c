@@ -178,6 +178,86 @@ void C_ActionLongPress(void) {
 }
 
 /* ========================================================================== */
+/*                  --- Функции обработки кнопки PRESET ---                   */
+/* ========================================================================== */
+//Одно короткое нажатие
+void PRESET_ActionShortPress(void) {
+	HID_KB_PressKeyOnce(HIDKEY_P, HIDKEY_MODIFIER_NONE);
+}
+
+//Одно двойное нажатие
+void PRESET_ActionDoubleClick(void) {
+}
+
+//Одно долгое нажатие
+void PRESET_ActionLongPress(void) {
+}
+
+/* ========================================================================== */
+/*                   --- Функции обработки кнопки MUTE ---                    */
+/* ========================================================================== */
+//Одно короткое нажатие
+void MUTE_ActionShortPress(void) {
+	HID_Media_PressKeyOnce(HID_MEDIA_Vol_Mute);
+}
+
+//Одно двойное нажатие
+void MUTE_ActionDoubleClick(void) {
+}
+
+//Одно долгое нажатие
+void MUTE_ActionLongPress(void) {
+}
+
+/* ========================================================================== */
+/*                   --- Функции обработки кнопки LEFT ---                    */
+/* ========================================================================== */
+//Одно короткое нажатие
+void LEFT_ActionShortPress(void) {
+	HID_KB_PressKeyOnce(HIDKEY_LEFT, HIDKEY_MODIFIER_NONE);
+}
+
+//Одно двойное нажатие
+void LEFT_ActionDoubleClick(void) {
+}
+
+//Одно долгое нажатие
+void LEFT_ActionLongPress(void) {
+}
+
+/* ========================================================================== */
+/*                   --- Функции обработки кнопки RIGHT ---                   */
+/* ========================================================================== */
+//Одно короткое нажатие
+void RIGHT_ActionShortPress(void) {
+	HID_KB_PressKeyOnce(HIDKEY_RIGHT, HIDKEY_MODIFIER_NONE);
+}
+
+//Одно двойное нажатие
+void RIGHT_ActionDoubleClick(void) {
+}
+
+//Одно долгое нажатие
+void RIGHT_ActionLongPress(void) {
+}
+
+/* ========================================================================== */
+/*                --- Функции обработки кнопки PRINTSCREEN ---                */
+/* ========================================================================== */
+//Одно короткое нажатие
+void PRNSCR_ActionShortPress(void) {
+	HID_KB_PressKeyOnce(HIDKEY_PRINTSCREEN, HIDKEY_MODIFIER_NONE);
+}
+
+//Одно двойное нажатие
+void PRNSCR_ActionDoubleClick(void) {
+}
+
+//Одно долгое нажатие
+void PRNSCR_ActionLongPress(void) {
+}
+
+/* ========================================================================== */
 /*              --- Функция инициализации структуры кнопок ---                */
 /* ========================================================================== */
 
@@ -190,6 +270,11 @@ void System_Init_Buttons(void)
     Button_Init(&buttons[1], KEY_ON_GPIO_Port, KEY_ON_Pin);
     Button_Init(&buttons[2], KEY_WIN_GPIO_Port, KEY_WIN_Pin);
     Button_Init(&buttons[3], KEY_reset_GPIO_Port, KEY_reset_Pin);
+	Button_Init(&buttons[4], KEY_PRESET_GPIO_Port, KEY_PRESET_Pin);
+	Button_Init(&buttons[5], KEY_MUTE_GPIO_Port, KEY_MUTE_Pin);
+	Button_Init(&buttons[6], KEY_LEFT_GPIO_Port, KEY_LEFT_Pin);
+	Button_Init(&buttons[7], KEY_RIGHT_GPIO_Port, KEY_RIGHT_Pin);
+	Button_Init(&buttons[8], KEY_PRINTSCREEN_GPIO_Port, KEY_PRINTSCREEN_Pin);
 }
 
 // === Таблица указателей на функции (dispatch matrix) для одиночных кнопок ===
@@ -199,7 +284,12 @@ static const action_cb_t action_table[NUM_BUTTONS][3] = {
     { EncoderActionShortPress, EncoderActionDoubleClick, EncoderActionLongPress },
     { POW_ON_ActionShortPress, POW_ON_ActionDoubleClick, POW_ON_ActionLongPress },
     { WIN_ActionShortPress,    WIN_ActionDoubleClick,    WIN_ActionLongPress },
-    { C_ActionShortPress,      C_ActionDoubleClick,      C_ActionLongPress }
+    { C_ActionShortPress,      C_ActionDoubleClick,      C_ActionLongPress },
+	{ PRESET_ActionShortPress, PRESET_ActionDoubleClick, PRESET_ActionLongPress },
+	{ MUTE_ActionShortPress,   MUTE_ActionDoubleClick,   MUTE_ActionLongPress },
+	{ LEFT_ActionShortPress,   LEFT_ActionDoubleClick,   LEFT_ActionLongPress },
+	{ RIGHT_ActionShortPress,  RIGHT_ActionDoubleClick,  RIGHT_ActionLongPress },
+	{ PRNSCR_ActionShortPress, PRNSCR_ActionDoubleClick, PRNSCR_ActionLongPress }
 };
 
 void ExecuteSingleAction(uint8_t btn_idx, button_event_t evt) {

@@ -3,7 +3,7 @@
 #include "button_handler.h"
 #include "hid_codes.h"
 
-#define NUM_BUTTONS 4
+#define NUM_BUTTONS 9
 
 extern button_ctx_t buttons[NUM_BUTTONS];
 
