@@ -487,56 +487,27 @@ static uint8_t  *USBD_HID_GetDeviceQualifierDesc(uint16_t *length)
 /* ========================================================================== */
 
 // Время последнего SOF (в ms)
-volatile uint32_t g_last_sof_time = 0;
-// Количество проверок состояния потому, что иногда ПК долго не посылает SOF
-volatile uint8_t stateCount = 0;
+volatile uint32_t g_last_sof_tick = 0;
 
 uint8_t USBD_HID_SOF(void)
 {
-    g_last_sof_time = HAL_GetTick();
+    g_last_sof_tick = HAL_GetTick();
     return USBD_OK;
-}
-
-bool PCisPowerDown(void) {
-	uint32_t now = HAL_GetTick();
-
-	// Если прошло > 333 мс без SOF — хост отключён
-	if (now - g_last_sof_time > 333) {
-		stateCount++;
-		if (stateCount > 3) {
-			stateCount = 0;
-			return true;
-		}
-	} else {
-		stateCount = 0;
-		if ( g_last_sof_time == 0 ) { // Только что подали питание
-			return true;
-		}
-	}
-	return false;
 }
 
 static uint32_t SatusPC_last_tick = 0;
 bool PC_RunState = false;
-static uint8_t SatusPC_counter = 0;
 
 void HandleSatusPC(void) {
-	// Для выполнения действия раз в 200мс.
-	if ((now_tick - SatusPC_last_tick) < 200 && now_tick == 0) { return; }
-	SatusPC_last_tick = now_tick;
+	// Проверка раз в 200мс.
+	if ((HAL_GetTick() - SatusPC_last_tick) < 200) { return; }
+	SatusPC_last_tick = HAL_GetTick();
 	
-	if (PCisPowerDown()) {
-		PC_RunState = false;
-		HAL_GPIO_TogglePin(LED_PIN_GPIO_Port, LED_PIN_Pin);
-		//HAL_Delay(200); //Здержку более 300 мс - не ставить! Смотри реализацию PCisPowerDown()
-	}
-	else {
-		if ( SatusPC_counter > 5 ) {
-			PC_RunState = true;
-			SatusPC_counter = 0;
-		}
-		else {
-			SatusPC_counter++;
-		}
-	}
+	// Если от последнего SOF прошло > 400 мс → хост отключился/уснул
+    if (HAL_GetTick() - g_last_sof_tick > 400 || g_last_sof_tick == 0) {
+        PC_RunState = false;
+        // Здесь можно: погасить LED, сбросить буферы, перевести MCU в sleep
+    } else {
+        PC_RunState = true;
+    }
 }

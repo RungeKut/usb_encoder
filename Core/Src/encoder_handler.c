@@ -12,7 +12,6 @@
 static int32_t prevCounter = 0;
 static int32_t currCounter = 0;
 static int32_t delta = 0;
-static uint32_t encoder_last_tick = 0;
 static uint8_t logical_index = 0;
 
 void HandleEncoder(void) {

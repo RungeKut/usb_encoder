@@ -3,6 +3,7 @@
 #include "hid_keyboard.h"
 #include "hid_mouse.h"
 #include "hid_consumer.h"
+#include "power_fsm.h"
 
 // === Реализация действий ===
 /* ========================================================================== */
@@ -87,48 +88,9 @@ void EncoderActionLongPress(void) {
 /* ========================================================================== */
 /*              --- Функции обработки кнопки питания POW_ON ---               */
 /* ========================================================================== */
-bool powerState = false;
 //Одно короткое нажатие
 void POW_ON_ActionShortPress(void) {
-	if ( powerState ) {
-		HID_System_SendCommand(HID_CUSTOM_SystemPowerDown);
-		while (PC_RunState) { HandleSatusPC(); }
-		// Красный цвет - сигнализируем, что по USB мы уже видим выключенное состояние
-		HAL_GPIO_WritePin(LED_220_GPIO_Port, LED_220_Pin, GPIO_PIN_RESET);
-	    HAL_GPIO_WritePin(LED_POW_GPIO_Port, LED_POW_Pin, GPIO_PIN_SET);
-		
-		// Ждем защитный интервал и снимаем питание
-		HAL_Delay(5000);
-		HAL_GPIO_WritePin(COMP_ON_GPIO_Port, COMP_ON_Pin, GPIO_PIN_RESET);
-		
-		//Желтый
-		HAL_GPIO_WritePin(LED_220_GPIO_Port, LED_220_Pin, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(LED_POW_GPIO_Port, LED_POW_Pin, GPIO_PIN_RESET);
-		
-		powerState = false;
-	}
-	else {
-		// Подаем питание и сразу зажигаем зеленый цвет, чтобы было понятно, что кнопка была нажата
-		HAL_GPIO_WritePin(COMP_ON_GPIO_Port, COMP_ON_Pin, GPIO_PIN_SET);
-		
-		//Красныый
-		HAL_GPIO_WritePin(LED_220_GPIO_Port, LED_220_Pin, GPIO_PIN_RESET);
-	    HAL_GPIO_WritePin(LED_POW_GPIO_Port, LED_POW_Pin, GPIO_PIN_SET);
-		
-		// Ждем загрузки USB и сигнализируем об этом короткой красной вспышкой
-		while (!PC_RunState) { HandleSatusPC(); }
-		
-		//Желтый
-		HAL_GPIO_WritePin(LED_220_GPIO_Port, LED_220_Pin, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(LED_POW_GPIO_Port, LED_POW_Pin, GPIO_PIN_RESET);
-		
-		HAL_Delay(1000);
-		
-		//Зеленый
-		HAL_GPIO_WritePin(LED_220_GPIO_Port, LED_220_Pin, GPIO_PIN_SET);
-	    HAL_GPIO_WritePin(LED_POW_GPIO_Port, LED_POW_Pin, GPIO_PIN_RESET);
-		powerState = true;
-	}
+	PowerFSM_Request(!global_power_state);
 }
 //Одно двойное нажатие
 void POW_ON_ActionDoubleClick(void) {
@@ -136,13 +98,15 @@ void POW_ON_ActionDoubleClick(void) {
 
 //Одно долгое нажатие
 void POW_ON_ActionLongPress(void) {
+	// Аварийное выключение реле без ожидания ПК
 	HAL_GPIO_WritePin(COMP_ON_GPIO_Port, COMP_ON_Pin, GPIO_PIN_RESET);
 	
 	//Желтый
 	HAL_GPIO_WritePin(LED_220_GPIO_Port, LED_220_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(LED_POW_GPIO_Port, LED_POW_Pin, GPIO_PIN_RESET);
 	
-	powerState = false;
+	global_power_state = false;
+    current_power_state = PWR_STATE_IDLE;
 }
 
 /* ========================================================================== */

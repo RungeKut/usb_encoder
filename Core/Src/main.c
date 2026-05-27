@@ -35,6 +35,7 @@
 #include "button_actions.h"
 #include "combo_resolver.h"
 #include "hid_codes.h"
+#include "power_fsm.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -66,7 +67,6 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-static uint32_t now_tick = 0;
 
 /* USER CODE END 0 */
 
@@ -108,8 +108,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
 	HAL_NVIC_EnableIRQ(TIM1_UP_IRQn);
 	HAL_TIM_Encoder_Start(&htim1, TIM_CHANNEL_ALL);
-	HAL_GPIO_WritePin(LED_220_GPIO_Port, LED_220_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(LED_POW_GPIO_Port, LED_POW_Pin, GPIO_PIN_SET);
+	PowerFSM_Init();
 	System_Init_Buttons();
 	Combo_Init();
   /* USER CODE END 2 */
@@ -118,14 +117,12 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 	// Задержка для установления режима работы блока питания
 	HAL_Delay(3000);
-	HAL_GPIO_WritePin(LED_220_GPIO_Port, LED_220_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(LED_POW_GPIO_Port, LED_POW_Pin, GPIO_PIN_RESET);
-	//HAL_GPIO_WritePin(COMP_ON_GPIO_Port, COMP_ON_Pin, GPIO_PIN_SET);
+	PowerLed_Set(LED_STATE_YELLOW);
 	while (1)
 	{
-		now_tick = HAL_GetTick();
-		HandleEncoder(); // Только опрос — быстро!
+		HandleEncoder();
 		HandleSatusPC();
+		PowerFSM_Tick();
 		
 		// Опрос всех кнопок
 		for (int i = 0; i < NUM_BUTTONS; i++) {
