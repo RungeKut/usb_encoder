@@ -36,6 +36,7 @@
 #include "combo_resolver.h"
 #include "hid_codes.h"
 #include "power_fsm.h"
+#include "hid_queue.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -111,6 +112,7 @@ int main(void)
 	PowerFSM_Init();
 	System_Init_Buttons();
 	Combo_Init();
+	HID_Queue_Init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -137,6 +139,7 @@ int main(void)
 		
 		// Разрешение комбинаций (автоматически сработает через COMBO_TIMEOUT_MS)
         Combo_Tick();
+		HID_Queue_Tick();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

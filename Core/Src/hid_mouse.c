@@ -1,42 +1,28 @@
 #include "hid_mouse.h"
-#include "usb_device.h"
-
-extern USBD_HandleTypeDef hUsbDeviceFS;
+#include "hid_queue.h"
 
 /* ========================================================================== */
 /*                    --- Функции отправки для мыши ---                       */
 /* ========================================================================== */
 
-// Ось перемещения мыши: false - Ось X, true - Ось Y
-bool axis_mouse_move = false;
-
-static void HID_Mouse_SendReport(mouseHID *mouse) {
-    //while (USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)mouse, sizeof(mouseHID)) == USBD_BUSY);
-	//HAL_Delay(30);
-	USBD_HID_SendReport(&hUsbDeviceFS, (uint8_t *)mouse, sizeof(mouseHID));
-}
+bool axis_mouse_move = false; // Ось перемещения мыши: false - Ось X, true - Ось Y
 
 void HID_Mouse_Move(int8_t x, int8_t y) {
-    mouseHID report = {0};
-	report.id = 3;
-    report.x = x;
-    report.y = y;
-    HID_Mouse_SendReport(&report);
+    mouseHID report = {.id = 3, .x = x, .y = y, .buttons = 0, .wheel = 0};
+    HID_Queue_Push((uint8_t*)&report, sizeof(report));
 }
 
 // wheel: положительное — вверх, отрицательное — вниз
 void HID_Mouse_Wheel(int8_t delta) {
-    mouseHID report = {0};
-	report.id = 3;
-    report.wheel = delta;
-    HID_Mouse_SendReport(&report);
+    mouseHID report = {.id = 3, .wheel = delta};
+    HID_Queue_Push((uint8_t*)&report, sizeof(report));
 }
 
 void HID_Mouse_Click(uint8_t button) {
-    mouseHID report = {0};
-	report.id = 3;
-    report.buttons = button;
-    HID_Mouse_SendReport(&report);
+    // Нажатие
+    mouseHID report = {.id = 3, .buttons = button};
+    HID_Queue_Push((uint8_t*)&report, sizeof(report));
+    // Отпускание (очередь сама выдержит паузу между ними)
     report.buttons = 0;
-    HID_Mouse_SendReport(&report);
+    HID_Queue_Push((uint8_t*)&report, sizeof(report));
 }

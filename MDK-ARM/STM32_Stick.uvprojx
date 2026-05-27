@@ -478,6 +478,11 @@
               <FileType>1</FileType>
               <FilePath>..\Core\Src\power_fsm.c</FilePath>
             </File>
+            <File>
+              <FileName>hid_queue.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\hid_queue.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

@@ -3,10 +3,9 @@
 #include "hid_codes.h"
 #include "usbd_hid.h"
 
-extern bool axis_mouse_move;
+#define MOUSE_STEP 5 // Шаг перемещения мыши
 
-// Шаг перемещения мыши
-#define MOUSE_STEP 5
+extern bool axis_mouse_move;
 
 void HID_Mouse_Move(int8_t x, int8_t y);
 void HID_Mouse_Wheel(int8_t delta);
