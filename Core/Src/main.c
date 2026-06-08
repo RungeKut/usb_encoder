@@ -37,6 +37,7 @@
 #include "hid_codes.h"
 #include "power_fsm.h"
 #include "hid_queue.h"
+#include "led_ctrl.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -100,13 +101,14 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_SPI2_Init();
   MX_DMA_Init();
   MX_TIM1_Init();
   MX_USB_DEVICE_Init();
-  MX_SPI2_Init();
   MX_USART1_UART_Init();
   MX_CRC_Init();
   /* USER CODE BEGIN 2 */
+    PowerLed_Set(LED_STATE_OFF);	
 	HAL_NVIC_EnableIRQ(TIM1_UP_IRQn);
 	HAL_TIM_Encoder_Start(&htim1, TIM_CHANNEL_ALL);
 	PowerFSM_Init();
@@ -117,9 +119,66 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+    LED_Init();
+	//LED_Set(LED_ERR, false);
+    LED_Set(LED_OK, false);
+    LED_Set(LED_REMOTE, false);
+    LED_Set(LED_BUSY, false);
+    LED_Set(LED_RX, false);
+    LED_Set(LED_TX, false);
+    LED_Set(LED_ATTOFF, false);
+    LED_Set(LED_OVPOW, false);
+	
+	LED_Set(LED_ERR, true);
+	LED_Update();
+	HAL_Delay(500);
+	LED_Set(LED_ERR, false);
+	
+	LED_Set(LED_OK, true);
+	LED_Update();
+	HAL_Delay(500);
+	LED_Set(LED_OK, false);
+	
+	LED_Set(LED_REMOTE, true);
+	LED_Update();
+	HAL_Delay(500);
+	LED_Set(LED_REMOTE, false);
+	
+	LED_Set(LED_BUSY, true);
+	LED_Update();
+	HAL_Delay(500);
+	LED_Set(LED_BUSY, false);
+	
+	LED_Set(LED_RX, true);
+	LED_Update();
+	HAL_Delay(500);
+	LED_Set(LED_RX, false);
+	
+	LED_Set(LED_TX, true);
+	LED_Update();
+	HAL_Delay(500);
+	LED_Set(LED_TX, false);
+	
+	LED_Set(LED_ATTOFF, true);
+	LED_Update();
+	HAL_Delay(500);
+	LED_Set(LED_ATTOFF, false);
+	
+	LED_Set(LED_OVPOW, true);
+	LED_Update();
+	HAL_Delay(500);
+	LED_Set(LED_OVPOW, false);
+	
+	LED_Update();
+	HAL_Delay(500);
 	// Задержка для установления режима работы блока питания
-	HAL_Delay(3000);
+	//HAL_Delay(3000);
 	PowerLed_Set(LED_STATE_YELLOW);
+	
+//	LED_Set(LED_RX, true);   // Зажечь RX
+//    LED_Set(LED_BUSY, true); // Зажечь BUSY
+//    LED_Set(LED_ERR, false); // Погасить ERR
+//    LED_Update();
 	while (1)
 	{
 		HandleEncoder();
@@ -137,7 +196,7 @@ int main(void)
             Combo_AddEvent(i, evt);
         }
 		
-		// Разрешение комбинаций (автоматически сработает через COMBO_TIMEOUT_MS)
+		// Разрешение комбинаций
         Combo_Tick();
 		HID_Queue_Tick();
     /* USER CODE END WHILE */

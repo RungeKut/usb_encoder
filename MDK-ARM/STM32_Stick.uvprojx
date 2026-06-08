@@ -429,11 +429,6 @@
               <FilePath>..\Core\Src\button_actions.c</FilePath>
             </File>
             <File>
-              <FileName>combo_resolver.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Core\Src\combo_resolver.c</FilePath>
-            </File>
-            <File>
               <FileName>hid_consumer.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Core\Src\hid_consumer.c</FilePath>
@@ -482,6 +477,16 @@
               <FileName>hid_queue.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Core\Src\hid_queue.c</FilePath>
+            </File>
+            <File>
+              <FileName>combo_resolver.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\combo_resolver.c</FilePath>
+            </File>
+            <File>
+              <FileName>led_ctrl.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\led_ctrl.c</FilePath>
             </File>
           </Files>
         </Group>

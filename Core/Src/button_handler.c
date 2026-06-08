@@ -2,10 +2,8 @@
 #include "main.h"
 
 // === Настройки ===
-#define DEBOUNCE_MS				40U
-#define SHORT_PRESS_MAX_MS		400U
-#define LONG_PRESS_MS			3000U
-#define DOUBLE_CLICK_GAP_MS		300U
+#define DEBOUNCE_MS      10U   // Антидребезг (меньше 30 может ловить помехи)
+#define LONG_PRESS_MS    3000U // Порог долгого нажатия
 
 // === Инициализация контекста ===
 void Button_Init(button_ctx_t* ctx, GPIO_TypeDef* port, uint16_t pin)
@@ -23,7 +21,7 @@ void HandleButton(button_ctx_t* ctx)
     uint32_t now = HAL_GetTick();
     bool is_active = (HAL_GPIO_ReadPin(ctx->port, ctx->pin) == GPIO_PIN_RESET);
 
-    // 1. Debounce
+    // 1. Антидребезг
     if (is_active != ctx->last_raw) {
         ctx->last_raw = is_active;
         ctx->debounce_timer = now;
@@ -31,60 +29,27 @@ void HandleButton(button_ctx_t* ctx)
     if ((now - ctx->debounce_timer) < DEBOUNCE_MS) return;
     bool stable = ctx->last_raw;
 
-    // 2. State Machine
-    switch (ctx->state)
-    {
+    // 2. Упрощённая машина состояний без Double Click
+    switch (ctx->state) {
         case 0: // IDLE
             if (stable) {
-                ctx->state = 1; // DEBOUNCE_DOWN
-                ctx->debounce_timer = now;
+                ctx->pending_event = BUTTON_EVT_SHORT_PRESS; // МГНОВЕННО при нажатии
+                ctx->state = 1;
+                ctx->press_start = now;
             }
             break;
 
-        case 1: // DEBOUNCE_DOWN
-            if (!stable) { ctx->state = 0; break; } // Дребезг отпустил
-            ctx->state = 2; // PRESSED
-            ctx->press_start = now;
-            break;
-
-        case 2: // PRESSED
+        case 1: // PRESSED (ждём отпускания или долгое нажатие)
             if (!stable) {
-                uint32_t dur = now - ctx->press_start;
-                if (dur >= LONG_PRESS_MS) {
-                    ctx->pending_event = BUTTON_EVT_LONG_PRESS;
-                    ctx->state = 3; // LONG_HELD
-                } else if (dur < SHORT_PRESS_MAX_MS) {
-                    ctx->state = 4; // WAIT_DOUBLE
-                    ctx->double_wait_start = now;
-                } else {
-                    ctx->state = 0; // Среднее нажатие (300..1000мс) игнорируем
-                }
+                ctx->state = 0; // Кнопка отпущена
             } else if ((now - ctx->press_start) >= LONG_PRESS_MS) {
                 ctx->pending_event = BUTTON_EVT_LONG_PRESS;
-                ctx->state = 3; // LONG_HELD
+                ctx->state = 2;
             }
             break;
 
-        case 3: // LONG_HELD
-            if (!stable) ctx->state = 0; // Ждем физического отпускания
-            break;
-
-        case 4: // WAIT_DOUBLE (после первого короткого отпускания)
-            if (stable) {
-                // Второе нажатие обнаружено -> фиксируем Double Click
-                ctx->pending_event = BUTTON_EVT_DOUBLE_CLICK;
-                ctx->state = 5; // Переходим в состояние подавления
-            } else if ((now - ctx->double_wait_start) >= DOUBLE_CLICK_GAP_MS) {
-                // Таймаут истек -> это был одиночный клик
-                ctx->pending_event = BUTTON_EVT_SHORT_PRESS;
-                ctx->state = 0;
-            }
-            break;
-
-        case 5: // WAIT_DOUBLE_RELEASE
-            // Игнорируем всё, пока вторая кнопка не будет отпущена.
-            // Это предотвращает повторный заход в логику короткого нажатия.
-            if (!stable) ctx->state = 0; 
+        case 2: // LONG_HELD
+            if (!stable) ctx->state = 0; // Ждём физического отпускания
             break;
     }
 }

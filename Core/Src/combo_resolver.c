@@ -5,14 +5,44 @@
 #include "hid_mouse.h"
 #include "hid_consumer.h"
 
-// Пример таблицы комбинаций
-void Combo_0_1(void) { HID_Media_PressKeyOnce(HID_MEDIA_Vol_Up); }
-void Combo_2_3(void) { HID_Mouse_Click(0x01); HID_Mouse_Click(0x02); }
+// Таблица комбинаций
+void Combo_0_1(void) // Enter + ON
+{
+	HID_KB_PressKeyOnce(HIDKEY_F10, HIDKEY_MODIFIER_NONE);
+}
+void Combo_0_3(void) // С + Enter
+{
+	HID_KB_PressKeyOnce(HIDKEY_SPACEBAR, HIDKEY_MODIFIER_NONE);
+}
+void Combo_2_3(void) // С + WIN
+{
+	HID_KB_PressKeyOnce(HIDKEY_DELETE, HIDKEY_MODIFIER_NONE);
+}
+void Combo_3_4(void) // С + PRESET
+{
+	HID_KB_PressKeyOnce(HIDKEY_F5, HIDKEY_MODIFIER_NONE);
+}
+void Combo_3_5(void) // С + MUTE
+{
+	HID_KB_PressKeyOnce(HIDKEY_F4, HIDKEY_MODIFIER_LEFT_ALT);
+}
+void Combo_3_6(void) // С + LEFT
+{
+	HID_KB_PressKeyOnce(HIDKEY_KP_MINUS, HIDKEY_MODIFIER_NONE);
+}
+void Combo_3_7(void) // С + RIGHT
+{
+	HID_KB_PressKeyOnce(HIDKEY_KP_PLUS, HIDKEY_MODIFIER_NONE);
+}
 
 const combo_entry_t combo_table[] = {
     { (1<<0) | (1<<1), Combo_0_1 },
+	{ (1<<0) | (1<<3), Combo_0_3 },
     { (1<<2) | (1<<3), Combo_2_3 },
-    // { (1<<0)|(1<<2), Combo_0_2 },
+	{ (1<<3) | (1<<4), Combo_3_4 },
+	{ (1<<3) | (1<<5), Combo_3_5 },
+	{ (1<<3) | (1<<6), Combo_3_6 },
+	{ (1<<3) | (1<<7), Combo_3_7 },
 };
 const uint8_t COMBO_TABLE_SIZE = sizeof(combo_table)/sizeof(combo_table[0]);
 
