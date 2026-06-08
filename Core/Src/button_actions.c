@@ -235,11 +235,11 @@ void System_Init_Buttons(void)
     Button_Init(&buttons[1], KEY_ON_GPIO_Port, KEY_ON_Pin);
     Button_Init(&buttons[2], KEY_WIN_GPIO_Port, KEY_WIN_Pin);
     Button_Init(&buttons[3], KEY_reset_GPIO_Port, KEY_reset_Pin);
-	Button_Init(&buttons[4], KEY_MUTE_GPIO_Port, KEY_MUTE_Pin); // В схеме перепутано PRESET => MUTE
-	Button_Init(&buttons[5], KEY_PRESET_GPIO_Port, KEY_PRESET_Pin); // В схеме перепутано MUTE => PRESET
-	Button_Init(&buttons[6], KEY_RIGHT_GPIO_Port, KEY_RIGHT_Pin); // В схеме перепутано LEFT => RIGHT
-	Button_Init(&buttons[7], KEY_LEFT_GPIO_Port, KEY_LEFT_Pin); // В схеме перепутано RIGHT => LEFT
-	Button_Init(&buttons[8], KEY_PRINTSCREEN_GPIO_Port, KEY_PRINTSCREEN_Pin); // Пока не разведен - неработает
+	Button_Init(&buttons[4], KEY_PRESET_GPIO_Port, KEY_PRESET_Pin);
+	Button_Init(&buttons[5], KEY_MUTE_GPIO_Port, KEY_MUTE_Pin);
+	Button_Init(&buttons[6], KEY_LEFT_GPIO_Port, KEY_LEFT_Pin);
+	Button_Init(&buttons[7], KEY_RIGHT_GPIO_Port, KEY_RIGHT_Pin);
+	Button_Init(&buttons[8], KEY_PRINTSCREEN_GPIO_Port, KEY_PRINTSCREEN_Pin);
 }
 
 // === Таблица указателей на функции (dispatch matrix) для одиночных кнопок ===
