@@ -1,0 +1,3 @@
+[submodule "common_core"]
+	path = common_core
+	url = git@gitlab:dkmv-sector/gen3/libs/common_core.git
