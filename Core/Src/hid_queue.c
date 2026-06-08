@@ -33,8 +33,14 @@ void HID_Queue_Init(void) {
 }
 
 bool HID_Queue_Push(const uint8_t *report, uint16_t len) {
-    if (count >= HID_QUEUE_SIZE || len == 0 || len > HID_REPORT_MAX_LEN) {
+    if (len == 0 || len > HID_REPORT_MAX_LEN) {
         return false; // Очередь полна или некорректная длина
+    }
+	
+	if (count >= HID_QUEUE_SIZE) {
+        // Сдвигаем head, явно удаляя oldest элемент
+        head = (head + 1) % HID_QUEUE_SIZE;
+        count--;
     }
     
     queue[tail].len = len;
