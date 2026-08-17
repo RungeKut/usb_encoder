@@ -107,6 +107,7 @@ int main(void)
   MX_SPI2_Init();
   MX_USART1_UART_Init();
   MX_CRC_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
     PowerLed_Set(LED_STATE_OFF);	
 	HAL_NVIC_EnableIRQ(TIM1_UP_IRQn);
@@ -129,48 +130,48 @@ int main(void)
     LED_Set(LED_ATTOFF, false);
     LED_Set(LED_OVPOW, false);
 	
-	LED_Set(LED_ERR, true);
-	LED_Update();
-	HAL_Delay(500);
-	LED_Set(LED_ERR, false);
-	
-	LED_Set(LED_OK, true);
-	LED_Update();
-	HAL_Delay(500);
-	LED_Set(LED_OK, false);
-	
-	LED_Set(LED_REMOTE, true);
-	LED_Update();
-	HAL_Delay(500);
-	LED_Set(LED_REMOTE, false);
-	
-	LED_Set(LED_BUSY, true);
-	LED_Update();
-	HAL_Delay(500);
-	LED_Set(LED_BUSY, false);
-	
-	LED_Set(LED_RX, true);
-	LED_Update();
-	HAL_Delay(500);
-	LED_Set(LED_RX, false);
-	
-	LED_Set(LED_TX, true);
-	LED_Update();
-	HAL_Delay(500);
-	LED_Set(LED_TX, false);
-	
-	LED_Set(LED_ATTOFF, true);
-	LED_Update();
-	HAL_Delay(500);
-	LED_Set(LED_ATTOFF, false);
-	
-	LED_Set(LED_OVPOW, true);
-	LED_Update();
-	HAL_Delay(500);
-	LED_Set(LED_OVPOW, false);
-	
-	LED_Update();
-	HAL_Delay(500);
+//	LED_Set(LED_ERR, true);
+//	LED_Update();
+//	HAL_Delay(500);
+//	LED_Set(LED_ERR, false);
+//	
+//	LED_Set(LED_OK, true);
+//	LED_Update();
+//	HAL_Delay(500);
+//	LED_Set(LED_OK, false);
+//	
+//	LED_Set(LED_REMOTE, true);
+//	LED_Update();
+//	HAL_Delay(500);
+//	LED_Set(LED_REMOTE, false);
+//	
+//	LED_Set(LED_BUSY, true);
+//	LED_Update();
+//	HAL_Delay(500);
+//	LED_Set(LED_BUSY, false);
+//	
+//	LED_Set(LED_RX, true);
+//	LED_Update();
+//	HAL_Delay(500);
+//	LED_Set(LED_RX, false);
+//	
+//	LED_Set(LED_TX, true);
+//	LED_Update();
+//	HAL_Delay(500);
+//	LED_Set(LED_TX, false);
+//	
+//	LED_Set(LED_ATTOFF, true);
+//	LED_Update();
+//	HAL_Delay(500);
+//	LED_Set(LED_ATTOFF, false);
+//	
+//	LED_Set(LED_OVPOW, true);
+//	LED_Update();
+//	HAL_Delay(500);
+//	LED_Set(LED_OVPOW, false);
+//	
+//	LED_Update();
+//	HAL_Delay(500);
 	// Задержка для установления режима работы блока питания
 	//HAL_Delay(3000);
 	PowerLed_Set(LED_STATE_YELLOW);

@@ -2,6 +2,7 @@
 #include "main.h"
 #include "usbd_hid.h"
 #include "hid_consumer.h"
+#include "tim.h"
 
 power_state_t current_power_state = PWR_STATE_IDLE;
 bool global_power_state = false;
@@ -42,7 +43,11 @@ void PowerFSM_Init(void) {
     current_power_state = PWR_STATE_IDLE;
     global_power_state = false;
     HAL_GPIO_WritePin(COMP_ON_GPIO_Port, COMP_ON_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(ZYNQ_ON_GPIO_Port, ZYNQ_ON_Pin, GPIO_PIN_RESET);
+	
+	//HAL_GPIO_WritePin(ZYNQ_ON_GPIO_Port, ZYNQ_ON_Pin, GPIO_PIN_RESET);
+	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
+	TIM2->CCR4=0;
+	
     PowerLed_Set(LED_STATE_OFF);
 }
 
@@ -58,6 +63,8 @@ bool PowerFSM_IsBusy(void) {
     return current_power_state != PWR_STATE_IDLE;
 }
 
+uint32_t i;
+
 void PowerFSM_Tick(void) {
     uint32_t now = HAL_GetTick();
     extern bool PC_RunState; // из usbd_hid.c
@@ -65,8 +72,22 @@ void PowerFSM_Tick(void) {
     switch (current_power_state) {
         case PWR_STATE_TURNING_ON: {
 			// Включаем ключ платы SDR
-			HAL_GPIO_WritePin(ZYNQ_ON_GPIO_Port, ZYNQ_ON_Pin, GPIO_PIN_SET);
-			HAL_Delay(100);
+//			HAL_GPIO_WritePin(ZYNQ_ON_GPIO_Port, ZYNQ_ON_Pin, GPIO_PIN_SET);
+			for(uint16_t i = 0; i <= 65535; i++)
+			{
+				TIM2->CCR4 = i;
+				
+				volatile uint32_t d;
+				// Число подобрано эмпирически для 72МГц и оптимизации -O3
+				for(d = 0; d < 80; d++) // 500мс
+				{
+					__NOP(); // Пустая инструкция, чтобы компилятор точно не выкинул цикл
+				}
+			}
+			TIM2->CCR4 = 720; // Гарантируем 100% в конце
+//			TIM2->CCR4=5000;
+//			HAL_Delay(500);
+//			TIM2->CCR4=65535;
 #ifdef INSTALL_PC
             // Включаем ключ компьютера
             HAL_GPIO_WritePin(COMP_ON_GPIO_Port, COMP_ON_Pin, GPIO_PIN_SET);
@@ -166,7 +187,8 @@ void PowerFSM_Tick(void) {
             // Ждём 5 сек для разряда БП
             if (elapsed >= RELAY_OFF_DELAY_MS) {
 				// Отключаем ключ платы SDR
-				HAL_GPIO_WritePin(ZYNQ_ON_GPIO_Port, ZYNQ_ON_Pin, GPIO_PIN_RESET);
+				//HAL_GPIO_WritePin(ZYNQ_ON_GPIO_Port, ZYNQ_ON_Pin, GPIO_PIN_RESET);
+				TIM2->CCR4=0;
 				// Отключаем ключ компьютера
                 HAL_GPIO_WritePin(COMP_ON_GPIO_Port, COMP_ON_Pin, GPIO_PIN_RESET);
                 PowerLed_Set(LED_STATE_YELLOW);
@@ -189,7 +211,8 @@ void PowerFSM_Tick(void) {
             // Автоматический сброс FSM через 3 секунды
             if (elapsed >= 3000) {
 				// Отключаем ключ платы SDR
-			    HAL_GPIO_WritePin(ZYNQ_ON_GPIO_Port, ZYNQ_ON_Pin, GPIO_PIN_RESET);
+			    //HAL_GPIO_WritePin(ZYNQ_ON_GPIO_Port, ZYNQ_ON_Pin, GPIO_PIN_RESET);
+				TIM2->CCR4=0;
 				// Отключаем ключ компьютера
                 HAL_GPIO_WritePin(COMP_ON_GPIO_Port, COMP_ON_Pin, GPIO_PIN_RESET);
                 PowerLed_Set(LED_STATE_YELLOW);

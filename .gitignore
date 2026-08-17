@@ -58,3 +58,4 @@ STM32_Stick/
 UsbTreeView.ini
 *math.lib
 JLinkLog.txt
+.serena/
